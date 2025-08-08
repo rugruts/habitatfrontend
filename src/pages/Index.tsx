@@ -17,7 +17,7 @@ import avatar2 from "@/assets/avatar-2.jpg";
 import avatar3 from "@/assets/avatar-3.jpg";
 import { apartments } from "@/data/apartments";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import Footer from "@/components/Footer";
 const amenityIcon = (key: string) => {
   switch (key) {
     case "wifi":
@@ -83,13 +83,12 @@ const Index: React.FC = () => {
         })}</script>
       </Helmet>
 
-      {/* Hero */}
+      {/* Hero (parallax) */}
       <section className="relative h-[80vh] md:h-[92vh] w-full overflow-hidden">
-        <img
-          src={heroImg}
-          alt="Cinematic view over Trikala river with bridges and cyclists"
-          className="absolute inset-0 h-full w-full object-cover"
-          loading="eager"
+        <div
+          className="absolute inset-0 bg-fixed bg-cover bg-center"
+          style={{ backgroundImage: `url(${heroImg})` }}
+          aria-hidden="true"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-background/10 via-background/30 to-background" />
         <div className="relative z-10 h-full container flex flex-col justify-end pb-8 md:pb-14">
@@ -254,23 +253,7 @@ const Index: React.FC = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t">
-        <div className="container py-8 md:py-12 grid md:grid-cols-3 gap-8">
-          <div>
-            <h3 className="font-display text-2xl">Habitat Lobby</h3>
-            <p className="text-muted-foreground mt-2">Boutique apartments in Trikala, Greece. Book direct for the best experience and personal tips.</p>
-          </div>
-          <div>
-            <h4 className="font-medium">Contact</h4>
-            <p className="text-muted-foreground mt-2">hello@habitatlobby.com<br/>+30 210 000 0000</p>
-          </div>
-          <div>
-            <h4 className="font-medium">Follow</h4>
-            <p className="text-muted-foreground mt-2">Instagram · Facebook</p>
-            <p className="text-xs text-muted-foreground mt-4">© {new Date().getFullYear()} Habitat Lobby. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
