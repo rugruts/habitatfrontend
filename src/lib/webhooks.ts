@@ -1,7 +1,7 @@
 import { supabaseHelpers } from './supabase';
 import Stripe from 'stripe';
 
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY || 'sk_test_51RuV2oPavW6GgvU6bLAgKBDzqOiAxtv22hWok3uUNeA0IB3BwNL9b6BwtEStCQYn1ciVZgRGemfutZV1wPGv07KV00QyXQeqkm', {
+const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY || 'your_stripe_secret_key_here', {
   apiVersion: '2025-07-30.basil',
 });
 
