@@ -1,0 +1,444 @@
+<!-- HABITAT LOBBY - PROFESSIONAL EMAIL TEMPLATES FOR TRIKALA -->
+<!-- Modern, Clean, Mobile-First Design -->
+
+<!-- ========================================= -->
+<!-- 1. BOOKING CONFIRMATION TEMPLATE -->
+<!-- ========================================= -->
+<div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937;">
+  
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Habitat Lobby</h1>
+    <p style="color: #d1fae5; margin: 8px 0 0 0; font-size: 16px;">Premium Stays in Trikala</p>
+  </div>
+
+  <!-- Content -->
+  <div style="background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+    
+    <!-- Success Icon -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="display: inline-block; background: #ecfdf5; padding: 20px; border-radius: 50%; margin-bottom: 20px;">
+        <span style="font-size: 32px;">✅</span>
+      </div>
+      <h2 style="color: #059669; margin: 0; font-size: 24px; font-weight: 600;">Booking Confirmed!</h2>
+      <p style="color: #6b7280; margin: 8px 0 0 0;">Your stay in Trikala is secured</p>
+    </div>
+
+    <!-- Booking Details Card -->
+    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 30px; margin: 30px 0;">
+      <h3 style="color: #111827; margin: 0 0 20px 0; font-size: 18px; font-weight: 600; display: flex; align-items: center;">
+        <span style="margin-right: 10px;">🏠</span> Booking Details
+      </h3>
+      
+      <div style="display: grid; gap: 15px;">
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+          <span style="color: #6b7280; font-weight: 500;">Property</span>
+          <span style="color: #111827; font-weight: 600;">{{ .Data.property_name }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+          <span style="color: #6b7280; font-weight: 500;">Check-in</span>
+          <span style="color: #111827; font-weight: 600;">{{ .Data.check_in }} at 15:00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+          <span style="color: #6b7280; font-weight: 500;">Check-out</span>
+          <span style="color: #111827; font-weight: 600;">{{ .Data.check_out }} at 11:00</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+          <span style="color: #6b7280; font-weight: 500;">Guests</span>
+          <span style="color: #111827; font-weight: 600;">{{ .Data.guest_count }} people</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+          <span style="color: #6b7280; font-weight: 500;">Total Amount</span>
+          <span style="color: #059669; font-weight: 700; font-size: 18px;">€{{ .Data.total_amount }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{{ .SiteURL }}/booking/{{ .Token }}" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 0 10px 10px 0; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+        View Booking
+      </a>
+      <a href="mailto:info@habitatlobby.com" style="display: inline-block; background: white; color: #059669; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; border: 2px solid #10b981; margin: 0 10px 10px 0;">
+        Contact Host
+      </a>
+    </div>
+
+    <!-- Location Info -->
+    <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 12px; padding: 25px; margin: 30px 0;">
+      <h4 style="color: #1e40af; margin: 0 0 15px 0; font-size: 16px; font-weight: 600; display: flex; align-items: center;">
+        <span style="margin-right: 10px;">📍</span> Welcome to Trikala
+      </h4>
+      <p style="color: #1e40af; margin: 0; font-size: 14px;">
+        Discover the charm of Thessaly's hidden gem. Your host will provide detailed check-in instructions 24 hours before arrival.
+      </p>
+    </div>
+
+    <!-- Footer -->
+    <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+      <p style="color: #6b7280; margin: 0; font-size: 14px;">
+        Questions? We're here to help!<br>
+        <a href="mailto:info@habitatlobby.com" style="color: #10b981; text-decoration: none;">info@habitatlobby.com</a> • 
+        <a href="tel:+302431234567" style="color: #10b981; text-decoration: none;">+30 243 123 4567</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================= -->
+<!-- 2. PRE-ARRIVAL INSTRUCTIONS TEMPLATE -->
+<!-- ========================================= -->
+<div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937;">
+  
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Almost Time! 🎉</h1>
+    <p style="color: #bfdbfe; margin: 8px 0 0 0; font-size: 16px;">Your Trikala adventure begins tomorrow</p>
+  </div>
+
+  <!-- Content -->
+  <div style="background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+    
+    <!-- Countdown -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+        <h2 style="color: #92400e; margin: 0; font-size: 20px; font-weight: 600;">Check-in Tomorrow at 15:00</h2>
+        <p style="color: #b45309; margin: 8px 0 0 0;">{{ .Data.property_name }} • Trikala, Greece</p>
+      </div>
+    </div>
+
+    <!-- Check-in Instructions -->
+    <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; padding: 25px; margin: 25px 0; border-radius: 0 8px 8px 0;">
+      <h3 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">🗝️ Check-in Instructions</h3>
+      <ul style="color: #1e40af; margin: 0; padding-left: 20px;">
+        <li style="margin-bottom: 8px;"><strong>Time:</strong> 15:00 onwards (flexible arrival)</li>
+        <li style="margin-bottom: 8px;"><strong>Address:</strong> {{ .Data.property_address }}</li>
+        <li style="margin-bottom: 8px;"><strong>Contact:</strong> +30 243 123 4567</li>
+        <li style="margin-bottom: 8px;"><strong>WiFi:</strong> HabitatTrikala2024</li>
+      </ul>
+    </div>
+
+    <!-- Important Reminders -->
+    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 25px; margin: 25px 0;">
+      <h4 style="color: #dc2626; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">⚠️ Important Reminders</h4>
+      <ul style="color: #dc2626; margin: 0; padding-left: 20px; font-size: 14px;">
+        <li style="margin-bottom: 8px;">Bring valid ID for verification (required by law)</li>
+        <li style="margin-bottom: 8px;">Quiet hours: 22:00 - 08:00</li>
+        <li style="margin-bottom: 8px;">No smoking inside the property</li>
+        <li>Maximum {{ .Data.guest_count }} guests as booked</li>
+      </ul>
+    </div>
+
+    <!-- Local Recommendations -->
+    <div style="background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%); border-radius: 12px; padding: 25px; margin: 25px 0;">
+      <h4 style="color: #7c3aed; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">🌟 Trikala Highlights</h4>
+      <p style="color: #7c3aed; margin: 0; font-size: 14px;">
+        Don't miss the historic Kursum Mosque, beautiful Lithaios River, and the charming old town. 
+        Ask your host for personalized recommendations!
+      </p>
+    </div>
+
+    <!-- Contact Button -->
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="mailto:info@habitatlobby.com" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+        Contact Your Host
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================= -->
+<!-- 3. ID VERIFICATION REMINDER TEMPLATE -->
+<!-- ========================================= -->
+<div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937;">
+
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">ID Verification Required</h1>
+    <p style="color: #fed7aa; margin: 8px 0 0 0; font-size: 16px;">Quick & secure process</p>
+  </div>
+
+  <!-- Content -->
+  <div style="background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+
+    <!-- Alert Icon -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="display: inline-block; background: #fef3c7; padding: 20px; border-radius: 50%; margin-bottom: 20px;">
+        <span style="font-size: 32px;">🆔</span>
+      </div>
+      <h2 style="color: #d97706; margin: 0; font-size: 24px; font-weight: 600;">Action Required</h2>
+      <p style="color: #6b7280; margin: 8px 0 0 0;">Complete verification for smooth check-in</p>
+    </div>
+
+    <!-- Urgency Banner -->
+    <div style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); border: 1px solid #fca5a5; border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center;">
+      <h3 style="color: #dc2626; margin: 0 0 10px 0; font-size: 18px; font-weight: 600;">⏰ Deadline: 24 Hours Before Check-in</h3>
+      <p style="color: #dc2626; margin: 0; font-size: 14px;">Required by Greek tourism law • Secure & encrypted</p>
+    </div>
+
+    <!-- What to Upload -->
+    <div style="background: #f9fafb; border-radius: 12px; padding: 25px; margin: 25px 0;">
+      <h4 style="color: #111827; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">📋 What You Need</h4>
+      <ul style="color: #374151; margin: 0; padding-left: 20px; font-size: 14px;">
+        <li style="margin-bottom: 8px;">Valid passport or national ID</li>
+        <li style="margin-bottom: 8px;">Clear, well-lit photo</li>
+        <li style="margin-bottom: 8px;">All corners visible</li>
+        <li>Takes less than 2 minutes</li>
+      </ul>
+    </div>
+
+    <!-- Security Assurance -->
+    <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border-radius: 12px; padding: 25px; margin: 25px 0;">
+      <h4 style="color: #059669; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">🔒 Your Privacy Protected</h4>
+      <p style="color: #059669; margin: 0; font-size: 14px;">
+        • End-to-end encryption<br>
+        • Automatic deletion after checkout<br>
+        • GDPR compliant<br>
+        • Used only for legal compliance
+      </p>
+    </div>
+
+    <!-- Upload Button -->
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{{ .SiteURL }}/id-verification/{{ .Token }}" style="display: inline-block; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 18px 36px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+        Upload ID Document
+      </a>
+    </div>
+
+    <!-- Help -->
+    <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+      <p style="color: #6b7280; margin: 0; font-size: 14px;">
+        Need help? Contact us at<br>
+        <a href="mailto:info@habitatlobby.com" style="color: #f59e0b; text-decoration: none;">info@habitatlobby.com</a>
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================= -->
+<!-- 4. PAYMENT CONFIRMATION TEMPLATE -->
+<!-- ========================================= -->
+<div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937;">
+
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #059669 0%, #047857 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Payment Received! 💳</h1>
+    <p style="color: #a7f3d0; margin: 8px 0 0 0; font-size: 16px;">Your booking is now fully secured</p>
+  </div>
+
+  <!-- Content -->
+  <div style="background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+
+    <!-- Success Icon -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="display: inline-block; background: #ecfdf5; padding: 20px; border-radius: 50%; margin-bottom: 20px;">
+        <span style="font-size: 32px;">✅</span>
+      </div>
+      <h2 style="color: #059669; margin: 0; font-size: 24px; font-weight: 600;">Payment Confirmed</h2>
+      <p style="color: #6b7280; margin: 8px 0 0 0;">Transaction processed successfully</p>
+    </div>
+
+    <!-- Payment Details -->
+    <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 30px; margin: 30px 0;">
+      <h3 style="color: #047857; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">💰 Payment Summary</h3>
+
+      <div style="display: grid; gap: 15px;">
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #bbf7d0;">
+          <span style="color: #047857; font-weight: 500;">Amount Paid</span>
+          <span style="color: #047857; font-weight: 700; font-size: 18px;">€{{ .Data.amount }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #bbf7d0;">
+          <span style="color: #047857; font-weight: 500;">Payment Method</span>
+          <span style="color: #047857; font-weight: 600;">{{ .Data.payment_method }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #bbf7d0;">
+          <span style="color: #047857; font-weight: 500;">Transaction ID</span>
+          <span style="color: #047857; font-weight: 600; font-family: monospace;">{{ .Token }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+          <span style="color: #047857; font-weight: 500;">Date & Time</span>
+          <span style="color: #047857; font-weight: 600;">{{ .Data.payment_date }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Receipt Button -->
+    <div style="text-align: center; margin: 30px 0;">
+      <a href="{{ .SiteURL }}/receipt/{{ .Token }}" style="display: inline-block; background: linear-gradient(135deg, #059669 0%, #047857 100%); color: white; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-right: 15px; box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);">
+        Download Receipt
+      </a>
+      <a href="{{ .SiteURL }}/booking/{{ .Token }}" style="display: inline-block; background: white; color: #059669; padding: 16px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; border: 2px solid #059669;">
+        View Booking
+      </a>
+    </div>
+
+    <!-- Next Steps -->
+    <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 12px; padding: 25px; margin: 25px 0;">
+      <h4 style="color: #1e40af; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">🎯 What's Next?</h4>
+      <ul style="color: #1e40af; margin: 0; padding-left: 20px; font-size: 14px;">
+        <li style="margin-bottom: 8px;">Complete ID verification (if not done)</li>
+        <li style="margin-bottom: 8px;">Receive check-in instructions 24h before arrival</li>
+        <li>Enjoy your stay in beautiful Trikala!</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================= -->
+<!-- 5. POST-STAY THANK YOU & REVIEW TEMPLATE -->
+<!-- ========================================= -->
+<div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937;">
+
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Thank You! 🙏</h1>
+    <p style="color: #ddd6fe; margin: 8px 0 0 0; font-size: 16px;">We hope you loved Trikala</p>
+  </div>
+
+  <!-- Content -->
+  <div style="background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+
+    <!-- Heart Icon -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="display: inline-block; background: #faf5ff; padding: 20px; border-radius: 50%; margin-bottom: 20px;">
+        <span style="font-size: 32px;">💜</span>
+      </div>
+      <h2 style="color: #7c3aed; margin: 0; font-size: 24px; font-weight: 600;">How Was Your Stay?</h2>
+      <p style="color: #6b7280; margin: 8px 0 0 0;">Your experience at {{ .Data.property_name }} matters to us</p>
+    </div>
+
+    <!-- Review Request -->
+    <div style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); border-radius: 12px; padding: 30px; margin: 30px 0; text-align: center;">
+      <h3 style="color: #7c3aed; margin: 0 0 15px 0; font-size: 20px; font-weight: 600;">⭐ Share Your Experience</h3>
+      <p style="color: #7c3aed; margin: 0 0 25px 0; font-size: 16px;">
+        Help future guests discover the magic of Trikala
+      </p>
+      <a href="{{ .SiteURL }}/review/{{ .Token }}" style="display: inline-block; background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%); color: white; padding: 18px 36px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);">
+        Leave a Review
+      </a>
+    </div>
+
+    <!-- Special Offer -->
+    <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 2px solid #10b981; border-radius: 12px; padding: 30px; margin: 30px 0; text-align: center;">
+      <h3 style="color: #059669; margin: 0 0 15px 0; font-size: 20px; font-weight: 600;">🎁 Welcome Back Offer</h3>
+      <p style="color: #059669; margin: 0 0 20px 0; font-size: 16px;">
+        Book again within 6 months and save <strong>15%</strong>
+      </p>
+      <div style="background: white; border-radius: 8px; padding: 15px; margin: 20px 0;">
+        <p style="color: #059669; margin: 0; font-size: 18px; font-weight: 700; font-family: monospace;">
+          Code: TRIKALA_RETURN
+        </p>
+      </div>
+      <a href="{{ .SiteURL }}?promo=TRIKALA_RETURN" style="display: inline-block; background: #059669; color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+        Book Your Return
+      </a>
+    </div>
+
+    <!-- Social Media -->
+    <div style="background: #f9fafb; border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center;">
+      <h4 style="color: #374151; margin: 0 0 15px 0; font-size: 16px; font-weight: 600;">📸 Share Your Memories</h4>
+      <p style="color: #6b7280; margin: 0 0 20px 0; font-size: 14px;">
+        Tag us @habitatlobby and #TrikalaStay for a chance to be featured!
+      </p>
+      <div style="display: flex; justify-content: center; gap: 15px;">
+        <a href="https://instagram.com/habitatlobby" style="color: #8b5cf6; text-decoration: none; font-weight: 600;">Instagram</a>
+        <a href="https://facebook.com/habitatlobby" style="color: #8b5cf6; text-decoration: none; font-weight: 600;">Facebook</a>
+      </div>
+    </div>
+
+    <!-- Personal Message -->
+    <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+      <p style="color: #374151; margin: 0 0 15px 0; font-size: 16px; font-style: italic;">
+        "Thank you for choosing Habitat Lobby. We hope Trikala captured your heart as much as it has ours."
+      </p>
+      <p style="color: #6b7280; margin: 0; font-size: 14px; font-weight: 600;">
+        — Stefanos & The Habitat Lobby Team
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================= -->
+<!-- 6. BOOKING CANCELLATION TEMPLATE -->
+<!-- ========================================= -->
+<div style="max-width: 600px; margin: 0 auto; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1f2937;">
+
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%); padding: 40px 30px; text-align: center; border-radius: 12px 12px 0 0;">
+    <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Booking Cancelled</h1>
+    <p style="color: #d1d5db; margin: 8px 0 0 0; font-size: 16px;">We understand plans change</p>
+  </div>
+
+  <!-- Content -->
+  <div style="background: white; padding: 40px 30px; border-radius: 0 0 12px 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+
+    <!-- Cancellation Icon -->
+    <div style="text-align: center; margin-bottom: 30px;">
+      <div style="display: inline-block; background: #f3f4f6; padding: 20px; border-radius: 50%; margin-bottom: 20px;">
+        <span style="font-size: 32px;">📋</span>
+      </div>
+      <h2 style="color: #4b5563; margin: 0; font-size: 24px; font-weight: 600;">Cancellation Confirmed</h2>
+      <p style="color: #6b7280; margin: 8px 0 0 0;">Your booking has been successfully cancelled</p>
+    </div>
+
+    <!-- Cancellation Details -->
+    <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 12px; padding: 30px; margin: 30px 0;">
+      <h3 style="color: #374151; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">📋 Cancellation Summary</h3>
+
+      <div style="display: grid; gap: 15px;">
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+          <span style="color: #6b7280; font-weight: 500;">Booking ID</span>
+          <span style="color: #374151; font-weight: 600; font-family: monospace;">{{ .Token }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+          <span style="color: #6b7280; font-weight: 500;">Property</span>
+          <span style="color: #374151; font-weight: 600;">{{ .Data.property_name }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e5e7eb;">
+          <span style="color: #6b7280; font-weight: 500;">Original Dates</span>
+          <span style="color: #374151; font-weight: 600;">{{ .Data.original_dates }}</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 12px 0;">
+          <span style="color: #6b7280; font-weight: 500;">Cancelled On</span>
+          <span style="color: #374151; font-weight: 600;">{{ .Data.cancellation_date }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Refund Information -->
+    <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); border: 1px solid #a7f3d0; border-radius: 12px; padding: 30px; margin: 30px 0;">
+      <h3 style="color: #059669; margin: 0 0 20px 0; font-size: 18px; font-weight: 600;">💰 Refund Information</h3>
+      <div style="background: white; border-radius: 8px; padding: 20px; margin: 15px 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="color: #059669; font-weight: 500; font-size: 16px;">Refund Amount</span>
+          <span style="color: #059669; font-weight: 700; font-size: 24px;">€{{ .Data.refund_amount }}</span>
+        </div>
+      </div>
+      <ul style="color: #059669; margin: 15px 0 0 0; padding-left: 20px; font-size: 14px;">
+        <li style="margin-bottom: 8px;">Processing time: 5-7 business days</li>
+        <li style="margin-bottom: 8px;">Refunded to original payment method</li>
+        <li>You'll receive a confirmation email once processed</li>
+      </ul>
+    </div>
+
+    <!-- Future Booking Invitation -->
+    <div style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); border-radius: 12px; padding: 25px; margin: 25px 0; text-align: center;">
+      <h4 style="color: #1e40af; margin: 0 0 15px 0; font-size: 18px; font-weight: 600;">🏠 We'd Love to Host You</h4>
+      <p style="color: #1e40af; margin: 0 0 20px 0; font-size: 14px;">
+        Trikala will be here when you're ready. We hope to welcome you in the future!
+      </p>
+      <a href="{{ .SiteURL }}" style="display: inline-block; background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 14px 28px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+        Explore Our Properties
+      </a>
+    </div>
+
+    <!-- Support -->
+    <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #e5e7eb;">
+      <p style="color: #6b7280; margin: 0; font-size: 14px;">
+        Questions about your cancellation or refund?<br>
+        <a href="mailto:info@habitatlobby.com" style="color: #3b82f6; text-decoration: none;">info@habitatlobby.com</a> •
+        <a href="tel:+302431234567" style="color: #3b82f6; text-decoration: none;">+30 243 123 4567</a>
+      </p>
+    </div>
+  </div>
+</div>

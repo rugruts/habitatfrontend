@@ -1,0 +1,92 @@
+# FTP Deployment Instructions for Habitat Lobby
+
+## Your FTP Connection Details:
+Host: 92.118.18.238
+Username: u148970346.lightcyan-shrew-950743.hostingersite.com
+Port: 21
+Directory: public_html
+
+## Method 1: Using FileZilla (Recommended - Visual Interface)
+
+1. Download FileZilla: https://filezilla-project.org/
+2. Install and open FileZilla
+3. Enter connection details:
+   - Host: 92.118.18.238
+   - Username: u148970346.lightcyan-shrew-950743.hostingersite.com
+   - Password: [Your FTP password from Hostinger]
+   - Port: 21
+4. Click "Quickconnect"
+5. Navigate to "public_html" folder on the server (right side)
+6. Navigate to your "dist" folder on your computer (left side)
+7. Select ALL files in the dist folder
+8. Drag and drop to public_html folder
+9. Wait for upload to complete
+
+## Method 2: Command Line FTP (Windows)
+
+Open PowerShell in your project directory and run:
+
+```powershell
+# Navigate to dist folder
+cd dist
+
+# Start FTP session
+ftp 92.118.18.238
+
+# When prompted, enter:
+# Username: u148970346.lightcyan-shrew-950743.hostingersite.com
+# Password: [Your FTP password]
+
+# Once connected, run these commands:
+cd public_html
+binary
+mput *
+quit
+```
+
+## Method 3: Automated PowerShell Script
+
+Save this as deploy.ps1 and run it:
+
+```powershell
+$ftpServer = "92.118.18.238"
+$ftpUsername = "u148970346.lightcyan-shrew-950743.hostingersite.com"
+$ftpPassword = "YOUR_PASSWORD_HERE"
+$localPath = "D:\habitat-lobby-trio\dist\*"
+$remotePath = "/public_html/"
+
+# Create FTP request
+$files = Get-ChildItem -Path "D:\habitat-lobby-trio\dist" -Recurse -File
+
+foreach ($file in $files) {
+    $uri = "ftp://$ftpServer$remotePath$($file.Name)"
+    $request = [System.Net.FtpWebRequest]::Create($uri)
+    $request.Method = [System.Net.WebRequestMethods+Ftp]::UploadFile
+    $request.Credentials = New-Object System.Net.NetworkCredential($ftpUsername, $ftpPassword)
+
+    $fileContent = [System.IO.File]::ReadAllBytes($file.FullName)
+    $request.ContentLength = $fileContent.Length
+
+    $requestStream = $request.GetRequestStream()
+    $requestStream.Write($fileContent, 0, $fileContent.Length)
+    $requestStream.Close()
+
+    Write-Host "Uploaded: $($file.Name)"
+}
+```
+
+## Files to Upload (from dist folder):
+- index.html
+- .htaccess (IMPORTANT!)
+- assets/ folder (contains CSS, JS, images)
+- All other files and folders
+
+## After Upload:
+1. Visit your domain to test
+2. Check that all pages work
+3. Test the booking flow
+4. Verify Stripe payment form loads
+
+## Your site will be live at:
+https://lightcyan-shrew-950743.hostingersite.com
+(or your custom domain if configured)

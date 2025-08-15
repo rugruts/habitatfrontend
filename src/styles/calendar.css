@@ -1,0 +1,195 @@
+/* Custom Calendar Styles */
+.rdp-custom {
+  --rdp-cell-size: 36px;
+  --rdp-accent-color: #D4A574;
+  --rdp-background-color: #ffffff;
+  --rdp-accent-color-dark: #B8935F;
+}
+
+.rdp-custom .rdp-months {
+  display: flex;
+  gap: 1rem;
+}
+
+.rdp-custom .rdp-month {
+  min-width: 280px;
+}
+
+.rdp-custom .rdp-caption {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.5rem 0;
+  position: relative;
+}
+
+.rdp-custom .rdp-caption_label {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.rdp-custom .rdp-nav {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.rdp-custom .rdp-nav_button {
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.375rem;
+  border: 1px solid #d1d5db;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.rdp-custom .rdp-nav_button:hover {
+  background-color: #f3f4f6;
+  border-color: var(--rdp-accent-color);
+}
+
+.rdp-custom .rdp-nav_button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.rdp-custom .rdp-nav_button_previous {
+  position: absolute;
+  left: 0.5rem;
+}
+
+.rdp-custom .rdp-nav_button_next {
+  position: absolute;
+  right: 0.5rem;
+}
+
+.rdp-custom .rdp-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 0.5rem;
+}
+
+.rdp-custom .rdp-head_cell {
+  width: var(--rdp-cell-size);
+  height: var(--rdp-cell-size);
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: #6b7280;
+  padding: 0;
+}
+
+.rdp-custom .rdp-cell {
+  width: var(--rdp-cell-size);
+  height: var(--rdp-cell-size);
+  text-align: center;
+  position: relative;
+  padding: 0;
+}
+
+.rdp-custom .rdp-button {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rdp-custom .rdp-button:hover {
+  background-color: rgba(212, 165, 116, 0.1);
+}
+
+.rdp-custom .rdp-button:disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.rdp-custom .rdp-button:disabled:hover {
+  background-color: transparent;
+}
+
+.rdp-custom .rdp-day_today .rdp-button {
+  background-color: rgba(212, 165, 116, 0.15);
+  font-weight: 600;
+  color: var(--rdp-accent-color-dark);
+}
+
+.rdp-custom .rdp-day_selected .rdp-button {
+  background-color: var(--rdp-accent-color);
+  color: white;
+  font-weight: 600;
+}
+
+.rdp-custom .rdp-day_selected .rdp-button:hover {
+  background-color: var(--rdp-accent-color-dark);
+}
+
+.rdp-custom .rdp-day_range_start .rdp-button,
+.rdp-custom .rdp-day_range_end .rdp-button {
+  background-color: var(--rdp-accent-color);
+  color: white;
+}
+
+.rdp-custom .rdp-day_range_middle .rdp-button {
+  background-color: rgba(212, 165, 116, 0.2);
+  color: var(--rdp-accent-color-dark);
+}
+
+.rdp-custom .rdp-day_outside {
+  opacity: 0.5;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .rdp-custom .rdp-months {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+  
+  .rdp-custom .rdp-month {
+    min-width: 100%;
+  }
+}
+
+/* Ensure proper spacing and layout */
+.rdp-custom .rdp-week {
+  display: flex;
+  gap: 0;
+}
+
+.rdp-custom .rdp-weekdays {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0.5rem;
+}
+
+/* Fix for navigation arrows */
+.rdp-custom .rdp-nav_button svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+/* Range selection styling */
+.rdp-custom .rdp-range_start {
+  border-top-left-radius: 0.375rem;
+  border-bottom-left-radius: 0.375rem;
+}
+
+.rdp-custom .rdp-range_end {
+  border-top-right-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+}
+
+.rdp-custom .rdp-range_middle {
+  border-radius: 0;
+}

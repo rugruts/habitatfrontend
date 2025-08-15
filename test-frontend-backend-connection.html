@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Frontend-Backend Connection Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; border-color: #c3e6cb; }
+        .error { background: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Frontend-Backend Connection Test</h1>
+    
+    <button onclick="testHealthEndpoint()">Test Health Endpoint</button>
+    <button onclick="testEmailConnection()">Test Email Connection</button>
+    <button onclick="testBookingEmail()">Test Booking Email</button>
+    
+    <div id="results"></div>
+
+    <script>
+        const API_URL = 'http://localhost:3001/api/email';
+        const API_KEY = 'habitat_lobby_secure_api_key_2024';
+
+        function addResult(title, success, message) {
+            const div = document.createElement('div');
+            div.className = `test ${success ? 'success' : 'error'}`;
+            div.innerHTML = `<h3>${title}</h3><p>${message}</p>`;
+            document.getElementById('results').appendChild(div);
+        }
+
+        async function testHealthEndpoint() {
+            try {
+                const response = await fetch('http://localhost:3001/health');
+                const data = await response.json();
+                addResult('Health Check', true, `✅ ${data.service} - ${data.status}`);
+            } catch (error) {
+                addResult('Health Check', false, `❌ ${error.message}`);
+            }
+        }
+
+        async function testEmailConnection() {
+            try {
+                const response = await fetch(`${API_URL}/test-connection`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_KEY
+                    }
+                });
+                const data = await response.json();
+                addResult('Email Connection', data.success, data.success ? `✅ ${data.message}` : `❌ ${data.error}`);
+            } catch (error) {
+                addResult('Email Connection', false, `❌ ${error.message}`);
+            }
+        }
+
+        async function testBookingEmail() {
+            const testBooking = {
+                id: '4031CCE3-test-frontend',
+                customer_name: 'Test User',
+                customer_email: 'theo.matrapilias@outlook.com',
+                check_in: '2024-08-15',
+                check_out: '2024-08-18',
+                guests: 2,
+                total_amount: 220.00,
+                properties: {
+                    name: 'Apartment 1 - with View'
+                }
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/send-booking-confirmation`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': API_KEY
+                    },
+                    body: JSON.stringify({ booking: testBooking })
+                });
+                const data = await response.json();
+                addResult('Booking Email', data.success, 
+                    data.success ? `✅ Email sent! Message ID: ${data.messageId}` : `❌ ${data.error}`);
+            } catch (error) {
+                addResult('Booking Email', false, `❌ ${error.message}`);
+            }
+        }
+    </script>
+</body>
+</html>

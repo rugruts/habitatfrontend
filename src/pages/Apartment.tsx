@@ -1,12 +1,15 @@
 import React from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, Navigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { apartments } from "@/data/apartments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
-import { Wifi, Snowflake, Utensils, Building2, MapPin } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ImageGallery } from "@/components/ui/image-gallery";
+import { BreadcrumbNav } from "@/components/ui/breadcrumb-nav";
+import { Wifi, Snowflake, Utensils, Building2, MapPin, Star, ArrowLeft } from "lucide-react";
 import BookingBar from "@/components/BookingBar";
+import Footer from "@/components/Footer";
 
 const amenityLabel: Record<string, { label: string; icon: React.ReactNode }> = {
   wifi: { label: "Wi‑Fi", icon: <Wifi className="h-4 w-4" /> },
@@ -18,13 +21,29 @@ const amenityLabel: Record<string, { label: string; icon: React.ReactNode }> = {
 
 const ApartmentPage: React.FC = () => {
   const { slug } = useParams();
+
+  // Redirect to specific apartment pages if they exist
+  if (slug === "river-loft") {
+    return <Navigate to="/apartments/river-loft" replace />;
+  }
+
+  if (slug === "garden-suite" || slug === "apartment-1") {
+    return <Navigate to="/apartments/apartment-1" replace />;
+  }
+
   const apt = apartments.find((a) => a.slug === slug);
 
   if (!apt) {
     return (
-      <div className="container py-20">
-        <h1 className="font-display text-3xl">Apartment not found</h1>
-        <Button asChild variant="outline" className="mt-4"><Link to="/">Back home</Link></Button>
+      <div className="container py-20 text-center">
+        <h1 className="font-display text-4xl mb-4">Apartment not found</h1>
+        <p className="text-muted-foreground mb-6">The apartment you're looking for doesn't exist.</p>
+        <Button asChild variant="hero" className="hover-scale">
+          <Link to="/apartments">
+            <ArrowLeft className="h-4 w-4" />
+            View All Apartments
+          </Link>
+        </Button>
       </div>
     );
   }
@@ -120,7 +139,9 @@ const ApartmentPage: React.FC = () => {
               <div className="mt-4">
                 <BookingBar compact />
               </div>
-              <Button className="w-full mt-3" variant="hero">Book Now</Button>
+              <Button asChild className="w-full mt-3" variant="hero">
+                <Link to={`/check-availability/${apt.slug}`}>Check Availability</Link>
+              </Button>
               <p className="text-xs text-muted-foreground mt-2">Secure payment. Best rate here.</p>
             </Card>
           </div>
@@ -129,7 +150,9 @@ const ApartmentPage: React.FC = () => {
 
       {/* Mobile sticky button */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-20 bg-background/80 backdrop-blur border-t p-3">
-        <Button className="w-full" variant="hero">Book Now</Button>
+        <Button asChild className="w-full" variant="hero">
+          <Link to={`/check-availability/${apt.slug}`}>Check Availability</Link>
+        </Button>
       </div>
     </div>
   );

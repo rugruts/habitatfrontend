@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Frontend Email Service</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { background: #f5f5f5; padding: 20px; margin: 20px 0; border-radius: 8px; }
+        button { background: #2563eb; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #1d4ed8; }
+        .result { margin-top: 10px; padding: 10px; border-radius: 4px; }
+        .success { background: #d1fae5; color: #065f46; }
+        .error { background: #fee2e2; color: #991b1b; }
+        .loading { background: #dbeafe; color: #1e40af; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Frontend Email Service Test</h1>
+    
+    <div class="test-section">
+        <h3>Test Booking Confirmation Email</h3>
+        <p>This will test the frontend email service integration with the backend API.</p>
+        <button onclick="testBookingConfirmation()">Send Test Booking Confirmation</button>
+        <div id="booking-result" class="result" style="display: none;"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>Test Connection</h3>
+        <p>This will test the connection to the backend email API.</p>
+        <button onclick="testConnection()">Test API Connection</button>
+        <div id="connection-result" class="result" style="display: none;"></div>
+    </div>
+
+    <script>
+        // Email service configuration
+        const EMAIL_API_URL = 'http://localhost:3001/api/email';
+        const EMAIL_API_KEY = 'habitat_lobby_secure_api_key_2024';
+
+        // Mock EmailService class (simplified version of the frontend service)
+        class EmailService {
+            constructor() {
+                this.apiUrl = EMAIL_API_URL;
+                this.apiKey = EMAIL_API_KEY;
+            }
+
+            async testConnection() {
+                try {
+                    const response = await fetch(`${this.apiUrl}/test-connection`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': this.apiKey
+                        }
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP ${response.status}`);
+                    }
+
+                    return { success: true };
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            }
+
+            async sendBookingConfirmation(booking) {
+                try {
+                    console.log('Sending booking confirmation via backend API:', booking);
+
+                    const response = await fetch(`${this.apiUrl}/send-booking-confirmation`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': this.apiKey
+                        },
+                        body: JSON.stringify({ booking })
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || `HTTP ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    return {
+                        success: true,
+                        messageId: result.messageId
+                    };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: error.message
+                    };
+                }
+            }
+        }
+
+        const emailService = new EmailService();
+
+        async function testConnection() {
+            const resultDiv = document.getElementById('connection-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '🔄 Testing connection...';
+
+            const result = await emailService.testConnection();
+
+            if (result.success) {
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = '✅ Connection successful! Backend API is working.';
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Connection failed: ${result.error}`;
+            }
+        }
+
+        async function testBookingConfirmation() {
+            const resultDiv = document.getElementById('booking-result');
+            resultDiv.style.display = 'block';
+            resultDiv.className = 'result loading';
+            resultDiv.innerHTML = '🔄 Sending booking confirmation email...';
+
+            // Sample booking data
+            const sampleBooking = {
+                id: '6398bd0f-7f52-44fa-9032-e65e28221591',
+                customer_name: 'Theodoros Matrapilias',
+                customer_email: 'theo.matrapilias@outlook.com',
+                check_in: '2024-08-15',
+                check_out: '2024-08-18',
+                guests: 2,
+                total_amount: 220.00,
+                properties: {
+                    name: 'Apartment 1 - with View',
+                    address: 'Thessaloniki, Greece'
+                }
+            };
+
+            const result = await emailService.sendBookingConfirmation(sampleBooking);
+
+            if (result.success) {
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    ✅ Booking confirmation email sent successfully!<br>
+                    📧 Message ID: ${result.messageId}<br>
+                    📬 Check your inbox: ${sampleBooking.customer_email}
+                `;
+            } else {
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `❌ Failed to send booking confirmation: ${result.error}`;
+            }
+        }
+    </script>
+</body>
+</html>

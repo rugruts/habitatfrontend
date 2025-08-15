@@ -1,6 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Lato:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700;800&display=swap');
+/* Leaflet CSS */
+@import 'leaflet/dist/leaflet.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Custom marker styles */
+.property-marker, .attraction-marker {
+  z-index: 1000 !important;
+}
+
+.leaflet-popup-content-wrapper {
+  border-radius: 8px;
+}
+
+.leaflet-popup-content {
+  margin: 0;
+}
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
@@ -8,36 +25,48 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Earthy light theme */
-    --background: 40 33% 96%; /* warm white/beige */
-    --foreground: 24 16% 16%;
+    /* Enhanced earthy light theme with modern gradients */
+    --background: 40 33% 98%; /* softer warm white */
+    --foreground: 24 20% 12%; /* deeper contrast */
 
-    --card: 40 33% 96%;
+    --card: 40 33% 99%;
     --card-foreground: 24 16% 16%;
 
-    --popover: 40 33% 96%;
+    --popover: 40 33% 99%;
     --popover-foreground: 24 16% 16%;
 
-    --primary: 160 34% 22%; /* deep green */
-    --primary-foreground: 40 33% 96%;
+    --primary: 160 40% 25%; /* richer deep green */
+    --primary-foreground: 40 33% 98%;
 
-    --secondary: 40 25% 90%; /* beige */
+    --secondary: 40 30% 94%; /* softer beige */
     --secondary-foreground: 24 16% 18%;
 
-    --muted: 40 20% 92%;
-    --muted-foreground: 24 10% 40%;
+    --muted: 40 25% 95%;
+    --muted-foreground: 24 12% 45%;
 
-    --accent: 35 85% 50%; /* gold/orange for CTAs */
-    --accent-foreground: 24 16% 12%;
+    --accent: 35 90% 55%; /* more vibrant gold/orange */
+    --accent-foreground: 24 20% 8%;
 
-    --destructive: 0 70% 45%;
-    --destructive-foreground: 40 33% 96%;
+    --destructive: 0 75% 50%;
+    --destructive-foreground: 40 33% 98%;
 
-    --border: 30 15% 85%;
-    --input: 30 15% 85%;
-    --ring: 160 34% 22%;
+    --border: 30 20% 88%;
+    --input: 30 20% 90%;
+    --ring: 160 40% 25%;
 
-    --radius: 0.75rem;
+    --radius: 0.875rem; /* slightly larger radius */
+
+    /* New gradient variables */
+    --gradient-primary: linear-gradient(135deg, hsl(160 40% 25%) 0%, hsl(160 35% 30%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(35 90% 55%) 0%, hsl(25 85% 60%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(160 40% 25%) 0%, hsl(35 90% 55%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(40 33% 99%) 0%, hsl(40 30% 96%) 100%);
+
+    /* Shadow variables */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
 
     /* Sidebar (rarely used here but kept coherent) */
     --sidebar-background: 40 33% 96%;
@@ -56,41 +85,49 @@ All colors MUST be HSL.
 
 
   .dark {
-    --background: 24 10% 10%;
-    --foreground: 40 20% 96%;
+    /* Enhanced dark theme */
+    --background: 24 12% 8%;
+    --foreground: 40 25% 96%;
 
-    --card: 24 10% 12%;
-    --card-foreground: 40 20% 96%;
+    --card: 24 12% 10%;
+    --card-foreground: 40 25% 96%;
 
-    --popover: 24 10% 12%;
-    --popover-foreground: 40 20% 96%;
+    --popover: 24 12% 10%;
+    --popover-foreground: 40 25% 96%;
 
-    --primary: 160 34% 70%;
+    --primary: 160 40% 65%;
     --primary-foreground: 24 16% 12%;
 
-    --secondary: 24 8% 16%;
+    --secondary: 24 10% 18%;
     --secondary-foreground: 40 20% 92%;
 
-    --muted: 24 8% 18%;
-    --muted-foreground: 40 6% 70%;
+    --muted: 24 10% 20%;
+    --muted-foreground: 40 8% 70%;
 
-    --accent: 35 85% 60%;
-    --accent-foreground: 24 16% 12%;
+    --accent: 35 90% 65%;
+    --accent-foreground: 24 16% 8%;
 
-    --destructive: 0 62% 40%;
-    --destructive-foreground: 40 20% 96%;
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 40 25% 96%;
 
-    --border: 24 8% 24%;
-    --input: 24 8% 24%;
-    --ring: 160 34% 60%;
-    --sidebar-background: 24 10% 10%;
-    --sidebar-foreground: 40 20% 96%;
-    --sidebar-primary: 160 34% 70%;
+    --border: 24 10% 25%;
+    --input: 24 10% 25%;
+    --ring: 160 40% 65%;
+
+    /* Dark mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(160 40% 65%) 0%, hsl(160 35% 70%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(35 90% 65%) 0%, hsl(25 85% 70%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(160 40% 65%) 0%, hsl(35 90% 65%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(24 12% 10%) 0%, hsl(24 10% 15%) 100%);
+
+    --sidebar-background: 24 12% 8%;
+    --sidebar-foreground: 40 25% 96%;
+    --sidebar-primary: 160 40% 65%;
     --sidebar-primary-foreground: 24 16% 12%;
-    --sidebar-accent: 35 85% 60%;
-    --sidebar-accent-foreground: 24 16% 12%;
-    --sidebar-border: 24 8% 24%;
-    --sidebar-ring: 160 34% 60%;
+    --sidebar-accent: 35 90% 65%;
+    --sidebar-accent-foreground: 24 16% 8%;
+    --sidebar-border: 24 10% 25%;
+    --sidebar-ring: 160 40% 65%;
   }
 }
 
@@ -127,9 +164,84 @@ All colors MUST be HSL.
   }
 
   .hover-scale {
-    transition: transform 0.2s ease;
+    transition: all 0.3s ease;
   }
   .hover-scale:hover {
     transform: scale(1.05);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .hover-lift {
+    transition: all 0.3s ease;
+  }
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+  }
+
+  .animate-enter {
+    animation: fade-in 0.6s ease-out, scale-in 0.4s ease-out;
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.5s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.6s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounce-in 0.8s ease-out;
+  }
+
+  .gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .gradient-card {
+    background: var(--gradient-card);
+  }
+
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  .text-gradient {
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .border-gradient {
+    position: relative;
+    background: var(--gradient-hero);
+    border-radius: var(--radius);
+  }
+  .border-gradient::before {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    background: hsl(var(--background));
+    border-radius: calc(var(--radius) - 1px);
   }
 }
