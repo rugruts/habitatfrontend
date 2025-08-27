@@ -213,14 +213,15 @@ export class EmailService {
         metadata: { type: 'booking_confirmation' }
       });
 
-      // Call backend booking confirmation endpoint
-      const response = await fetch(`${this.apiUrl}/send-booking-confirmation`, {
+      // Call backend booking confirmation endpoint (consolidated)
+      const response = await fetch(`${this.apiUrl}/email`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': this.apiKey
         },
         body: JSON.stringify({
+          action: 'booking-confirmation',
           booking: booking
         })
       });
@@ -345,8 +346,8 @@ export class EmailService {
             </ul>
 
             <p>If you have any questions, please don't hesitate to contact us:</p>
-            <p>Email: hello@habitatlobby.com<br>
-               Phone: +30 243 123 4567</p>
+            <p>Email: admin@habitatlobby.com<br>
+                               Phone: +30 697 769 0685</p>
           </div>
 
           <div class="footer">

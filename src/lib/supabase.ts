@@ -54,6 +54,18 @@ interface PropertyData {
   check_out_time?: string;
   cleaning_fee?: number;
   security_deposit?: number;
+  latitude?: number;
+  longitude?: number;
+  rules?: Array<{
+    id: string;
+    icon: string;
+    title: string;
+    description: string;
+  }>;
+  about_space?: string;
+  the_space?: string;
+  location_neighborhood?: string;
+  house_rules?: string;
 }
 
 interface GuestData {
@@ -86,11 +98,10 @@ interface InvoiceFilters {
 interface EmailTemplateData {
   name: string;
   subject: string;
-  html_content: string;
-  text_content?: string;
+  content: string;
   template_type: string;
-  active?: boolean;
-  variables?: string;
+  is_active?: boolean;
+  variables?: string[];
   created_at?: string;
   updated_at?: string;
 }
@@ -105,14 +116,48 @@ interface EmailLogFilters {
   created_to?: string;
 }
 
+interface ReviewData {
+  id: string;
+  created_at: string;
+  booking_id?: string;
+  property_id: string;
+  guest_name: string;
+  guest_email: string;
+  guest_avatar_url?: string;
+  overall_rating: number;
+  cleanliness_rating?: number;
+  communication_rating?: number;
+  location_rating?: number;
+  value_rating?: number;
+  accuracy_rating?: number;
+  title?: string;
+  review_text: string;
+  pros?: string;
+  cons?: string;
+  stay_date: string;
+  nights_stayed: number;
+  guest_count: number;
+  trip_type?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'hidden';
+  is_verified: boolean;
+  is_featured: boolean;
+  helpful_count: number;
+  photos: string[];
+  has_response: boolean;
+  properties?: {
+    name: string;
+    slug: string;
+  };
+}
+
 interface EmailLogData {
   template_id?: string;
   recipient_email: string;
   recipient_name?: string;
   subject: string;
-  html_content: string;
-  text_content?: string;
+  content: string;
   status: string;
+  booking_id?: string;
   sent_at?: string;
   error_message?: string;
   metadata?: Record<string, unknown>;
@@ -245,7 +290,7 @@ export const supabaseHelpers = {
         .from('bookings')
         .select('check_in, check_out, status')
         .eq('property_id', propertyId)
-        .eq('status', 'confirmed')
+        .in('status', ['confirmed', 'pending'])
         .gte('check_out', startDate)
         .lte('check_in', endDate),
 
@@ -364,6 +409,7 @@ export const supabaseHelpers = {
     name: string;
     email: string;
     phone?: string;
+    country?: string;
     specialRequests?: string;
   }) {
     try {
@@ -388,6 +434,7 @@ export const supabaseHelpers = {
         first_name: firstName,
         last_name: lastName,
         phone: guestData.phone,
+        country: guestData.country,
         updated_at: new Date().toISOString()
       };
 
@@ -459,6 +506,7 @@ export const supabaseHelpers = {
     customer_name: string;
     customer_email: string;
     customer_phone?: string;
+    customer_country?: string;
     total_amount: number; // in euros
     currency: string;
     status: 'pending' | 'confirmed' | 'cancelled';
@@ -475,6 +523,7 @@ export const supabaseHelpers = {
       name: booking.customer_name,
       email: booking.customer_email,
       phone: booking.customer_phone,
+      country: booking.customer_country,
       specialRequests: booking.specialRequests
     });
 
@@ -683,6 +732,7 @@ export const supabaseHelpers = {
   async createProperty(property: {
     name: string;
     description: string;
+    detailed_description?: string;
     city: string;
     country: string;
     address: string;
@@ -694,7 +744,11 @@ export const supabaseHelpers = {
     amenities: string[] | string;
     images?: string[] | string;
     active: boolean;
-    // New fields
+    property_type?: string;
+    latitude?: number;
+    longitude?: number;
+    nearby_facilities?: object;
+    // Legacy fields
     slug?: string;
     size_sqm?: number;
     cleaning_fee?: number;
@@ -726,6 +780,7 @@ export const supabaseHelpers = {
   async updateProperty(propertyId: string, updates: Partial<{
     name: string;
     description: string;
+    detailed_description: string;
     city: string;
     country: string;
     address: string;
@@ -737,7 +792,11 @@ export const supabaseHelpers = {
     amenities: string[] | string;
     images: string[] | string;
     active: boolean;
-    // New fields
+    property_type: string;
+    latitude: number;
+    longitude: number;
+    nearby_facilities: object;
+    // Legacy fields
     slug: string;
     size_sqm: number;
     cleaning_fee: number;
@@ -1561,6 +1620,176 @@ export const supabaseHelpers = {
     } catch (error) {
       console.error('Error triggering email automation:', error);
       throw error;
+    }
+  },
+
+  // === REVIEWS HELPERS ===
+
+  // Get property reviews
+  async getPropertyReviews(propertyId: string, limit: number = 10): Promise<ReviewData[]> {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('property_id', propertyId)
+        .eq('status', 'approved')
+        .order('is_featured', { ascending: false })
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching reviews:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      return [];
+    }
+  },
+
+  // Get homepage reviews (approved and featured reviews)
+  async getHomepageReviews(limit: number = 6): Promise<ReviewData[]> {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          properties (
+            name,
+            slug
+          )
+        `)
+        .eq('status', 'approved')
+        .eq('is_featured', true)
+        .order('created_at', { ascending: false })
+        .limit(limit);
+
+      if (error) {
+        console.error('Error fetching homepage reviews:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching homepage reviews:', error);
+      return [];
+    }
+  },
+
+  // Get all reviews with filtering options
+  async getAllReviews(): Promise<ReviewData[]> {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select(`
+          *,
+          properties (
+            name,
+            slug
+          )
+        `)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching all reviews:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching all reviews:', error);
+      return [];
+    }
+  },
+
+  // Create a new review
+  async createReview(reviewData: {
+    booking_id?: string;
+    property_id: string;
+    guest_name: string;
+    guest_email: string;
+    guest_avatar_url?: string;
+    overall_rating: number;
+    cleanliness_rating?: number;
+    communication_rating?: number;
+    location_rating?: number;
+    value_rating?: number;
+    accuracy_rating?: number;
+    title?: string;
+    review_text: string;
+    pros?: string;
+    cons?: string;
+    stay_date: string;
+    nights_stayed: number;
+    guest_count: number;
+    trip_type?: string;
+    status: 'pending' | 'approved' | 'rejected' | 'hidden';
+    is_verified: boolean;
+    is_featured: boolean;
+    photos: string[];
+    source?: string;
+  }): Promise<ReviewData> {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .insert([{
+          ...reviewData,
+          helpful_count: 0,
+          has_response: false,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating review:', error);
+        throw error;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error creating review:', error);
+      throw error;
+    }
+  },
+
+  // Get property review statistics
+  async getPropertyReviewStats(propertyId: string): Promise<{
+    totalReviews: number;
+    averageRating: number;
+    ratingDistribution: { [key: number]: number };
+  }> {
+    try {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('overall_rating')
+        .eq('property_id', propertyId)
+        .eq('status', 'approved');
+
+      if (error) {
+        console.error('Error fetching review stats:', error);
+        return { totalReviews: 0, averageRating: 0, ratingDistribution: {} };
+      }
+
+      const reviews = data || [];
+      const totalReviews = reviews.length;
+      const averageRating = totalReviews > 0 
+        ? reviews.reduce((sum, review) => sum + review.overall_rating, 0) / totalReviews 
+        : 0;
+
+      const ratingDistribution = reviews.reduce((acc, review) => {
+        acc[review.overall_rating] = (acc[review.overall_rating] || 0) + 1;
+        return acc;
+      }, {} as { [key: number]: number });
+
+      return { totalReviews, averageRating, ratingDistribution };
+    } catch (error) {
+      console.error('Error fetching review stats:', error);
+      return { totalReviews: 0, averageRating: 0, ratingDistribution: {} };
     }
   }
 };
