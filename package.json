@@ -9,8 +9,12 @@
     "build:dev": "vite build --mode development",
     "build:prod": "vite build --mode production",
     "lint": "eslint .",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
     "preview": "vite preview",
-    "deploy": "npm run build:prod && echo 'Build complete! Upload dist/ folder to Hostinger public_html'"
+    "deploy": "npm run build:prod && echo 'Build complete! Upload dist/ folder to Hostinger public_html'",
+    "db:migrate": "echo 'Run migrations in Supabase dashboard or use supabase CLI'",
+    "db:seed": "echo 'Seed data via Supabase dashboard'",
+    "sync:ical": "echo 'Run iCal sync via backend API endpoint'"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
