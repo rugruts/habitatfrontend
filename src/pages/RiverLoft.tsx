@@ -35,7 +35,6 @@ import {
   Waves
 } from "lucide-react";
 import BookingBar from "@/components/BookingBar";
-import Footer from "@/components/Footer";
 import { realAttractions } from "@/data/apartments";
 
 const RiverLoft: React.FC = () => {
@@ -103,7 +102,7 @@ const RiverLoft: React.FC = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Helmet>
-        <title>{apartment.name} - Boutique Apartment in Trikala | Habitat Lobby</title>
+        <title>{apartment.name} - Premium Apartment in Trikala | Habitat Lobby</title>
         <meta name="description" content={`${apartment.description} Book direct for best rates and local tips.`} />
         <link rel="canonical" href={`https://habitat-lobby.lovable.app/apartments/${apartment.slug}`} />
       </Helmet>
@@ -448,7 +447,6 @@ const RiverLoft: React.FC = () => {
         </section>
       </div>
 
-      <Footer />
 
       {/* Enhanced Mobile CTA */}
       <StickyMobileCTA href="#booking">

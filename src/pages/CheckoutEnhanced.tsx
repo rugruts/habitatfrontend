@@ -6,9 +6,16 @@ import { Card, CardContent } from "@/components/ui/card";
 
 import { api } from "@/lib/api";
 import { supabase, supabaseHelpers } from "@/lib/supabase";
-import { bookingEmailService } from "@/lib/booking-email-service";
+import { paymentEmailService } from "@/lib/payment-email-service";
+import { bookingAutomationIntegration } from "@/lib/booking-automation-integration";
+import { useEmailAutomation } from "@/hooks/useEmailAutomation";
+import { PaymentErrorBoundary } from "@/components/PaymentErrorBoundary";
+import { monitoringService } from "@/services/MonitoringService";
+import { sepaPaymentService, type SEPAPayment } from "@/services/SEPAPaymentService";
+import { cashOnArrivalService, type CashOnArrivalPayment } from "@/services/CashOnArrivalService";
+import SEPAPaymentConfirmation from "@/components/SEPAPaymentConfirmation";
 import SEO from "@/components/SEO";
-import { trackPageView, trackBookingStart, trackBookingComplete } from "@/components/GoogleAnalytics";
+import { trackPageView, trackBookingStart, trackBookingComplete } from "@/utils/analytics";
 import { ArrowLeft, Lock } from "lucide-react";
 import { Elements } from "@stripe/react-stripe-js";
 import { stripePromise, stripeAppearance } from "@/lib/stripe";
@@ -23,6 +30,7 @@ import { BookingConfirmation } from "@/components/checkout/BookingConfirmation";
 const Checkout: React.FC = () => {
   const navigate = useNavigate();
   const { unitSlug, dates, guests, quote, reset } = useBookingStore();
+  const { triggerBookingConfirmation } = useEmailAutomation();
   const [form, setForm] = React.useState({
     firstName: "",
     lastName: "",
@@ -40,15 +48,17 @@ const Checkout: React.FC = () => {
   } | null>(null);
   const [step, setStep] = React.useState<'details' | 'payment' | 'confirmation'>('details');
   const [clientSecret, setClientSecret] = React.useState<string>('');
+  const [bookingId, setBookingId] = React.useState<string>('');
+  const [sepaPayment, setSepaPayment] = React.useState<Partial<SEPAPayment> | null>(null);
   const [errors, setErrors] = React.useState<{[key: string]: string}>({});
   const [propertyName, setPropertyName] = React.useState<string>('');
 
   // emailService is imported from @/lib/email-service
 
-  // Test bookingEmailService on component mount
+  // Test paymentEmailService on component mount
   React.useEffect(() => {
-    console.log('🧪 CheckoutEnhanced: bookingEmailService loaded:', !!bookingEmailService);
-    console.log('🧪 CheckoutEnhanced: bookingEmailService type:', typeof bookingEmailService);
+    console.log('🧪 CheckoutEnhanced: paymentEmailService loaded:', !!paymentEmailService);
+    console.log('🧪 CheckoutEnhanced: paymentEmailService type:', typeof paymentEmailService);
     trackPageView('checkout');
     if (unitSlug) {
       trackBookingStart(unitSlug);
@@ -113,8 +123,12 @@ const Checkout: React.FC = () => {
     } else if (!/\S+@\S+\.\S+/.test(form.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-
-
+    if (!form.phone.trim()) {
+      newErrors.phone = 'Phone number is required';
+    }
+    if (!form.country.trim()) {
+      newErrors.country = 'Country of residence is required';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -171,6 +185,18 @@ const Checkout: React.FC = () => {
       }
 
       setClientSecret(res.clientSecret);
+      setBookingId(res.bookingId);
+      
+      // Trigger booking_created automation
+      if (res.bookingId) {
+        try {
+          console.log('🎯 Triggering booking_created automation for:', res.bookingId);
+          await bookingAutomationIntegration.onBookingCreated(res.bookingId);
+        } catch (automationError) {
+          console.error('❌ Automation trigger failed (non-critical):', automationError);
+        }
+      }
+      
       setStep('payment');
     } catch (error: unknown) {
       console.error('Failed to create payment intent:', error);
@@ -181,12 +207,150 @@ const Checkout: React.FC = () => {
     }
   };
 
-  const onPaymentSuccess = async (paymentIntent: any) => {
+  const onPaymentSuccess = async (paymentIntent: {
+    id: string;
+    amount?: number;
+    metadata?: {
+      booking_id?: string;
+      payment_method?: string;
+      sepa_reference?: string;
+      cash_reference?: string;
+    };
+  }) => {
     try {
       console.log('Payment success! Payment intent:', paymentIntent);
       console.log('Payment intent metadata:', paymentIntent.metadata);
 
+      // Track payment success
+      monitoringService.trackPaymentEvent({
+        eventType: 'payment_succeeded',
+        paymentIntentId: paymentIntent.id,
+        bookingId: paymentIntent.metadata?.booking_id,
+        timestamp: new Date().toISOString()
+      });
+
       let bookingId = paymentIntent.metadata?.booking_id;
+
+      // Handle SEPA payment - create SEPA record and show instructions
+      if (paymentIntent.metadata?.payment_method === 'sepa_bank_transfer') {
+        console.log('SEPA payment initiated, creating payment record...');
+        
+        try {
+          const sepaPaymentData = await sepaPaymentService.createSEPAPayment(
+            bookingId,
+            paymentIntent.amount || 0,
+            'EUR',
+            {
+              name: `${form.firstName} ${form.lastName}`.trim(),
+              email: form.email
+            }
+          );
+
+          // Send SEPA payment instructions email
+          const emailData = {
+            bookingId,
+            guestName: `${form.firstName} ${form.lastName}`.trim(),
+            guestEmail: form.email,
+            propertyName,
+            checkIn: dates.from!,
+            checkOut: dates.to!,
+            guests,
+            totalAmount: (paymentIntent.amount || 0) / 100,
+            currency: 'EUR',
+            paymentMethod: 'sepa' as const,
+            sepaData: {
+              referenceCode: sepaPaymentData.reference_code,
+              iban: sepaPaymentData.iban_info?.iban || 'GR1234567890123456789012345',
+              bic: sepaPaymentData.iban_info?.bic || 'PIRBGRAA',
+              accountHolder: sepaPaymentData.iban_info?.account_holder || 'HABITAT LOBBY',
+              bankName: sepaPaymentData.iban_info?.bank_name || 'Piraeus Bank',
+              paymentDeadline: sepaPaymentData.expires_at
+            }
+          };
+
+          await paymentEmailService.sendSEPAPaymentInstructions(emailData);
+
+          // Trigger automation for SEPA payment instructions sent
+          try {
+            console.log('🎯 Triggering payment_received automation for SEPA:', bookingId);
+            await bookingAutomationIntegration.onPaymentReceived(bookingId, 'sepa');
+          } catch (automationError) {
+            console.error('❌ SEPA automation trigger failed (non-critical):', automationError);
+          }
+
+          setSepaPayment(sepaPaymentData);
+          setStep('confirmation');
+          return;
+        } catch (sepaError) {
+          console.error('Failed to create SEPA payment:', sepaError);
+          setErrors({ payment: 'Failed to process SEPA payment. Please contact support.' });
+          return;
+        }
+      }
+
+      // Handle Cash on Arrival payment - create cash record and show instructions
+      if (paymentIntent.metadata?.payment_method === 'cash_on_arrival') {
+        console.log('Cash on arrival payment initiated, creating payment record...');
+        
+        try {
+          const cashPaymentData = await cashOnArrivalService.createCashOnArrivalPayment(
+            bookingId,
+            paymentIntent.amount || 0,
+            'EUR',
+            {
+              name: `${form.firstName} ${form.lastName}`.trim(),
+              email: form.email
+            },
+            {
+              checkInTime: '15:00'
+            }
+          );
+
+          // Send cash on arrival instructions email
+          const emailData = {
+            bookingId,
+            guestName: `${form.firstName} ${form.lastName}`.trim(),
+            guestEmail: form.email,
+            propertyName,
+            checkIn: dates.from!,
+            checkOut: dates.to!,
+            guests,
+            totalAmount: (paymentIntent.amount || 0) / 100,
+            currency: 'EUR',
+            paymentMethod: 'cash_on_arrival' as const,
+            cashData: {
+              referenceCode: cashPaymentData.reference_code,
+              checkInTime: cashPaymentData.check_in_time,
+              paymentLocation: cashPaymentData.payment_location
+            }
+          };
+
+          await paymentEmailService.sendCashOnArrivalInstructions(emailData);
+
+          // Trigger automation for cash payment instructions sent
+          try {
+            console.log('🎯 Triggering payment_received automation for cash:', bookingId);
+            await bookingAutomationIntegration.onPaymentReceived(bookingId, 'cash_on_arrival');
+          } catch (automationError) {
+            console.error('❌ Cash automation trigger failed (non-critical):', automationError);
+          }
+
+          // For cash payments, we show a different confirmation
+          setResult({
+            bookingId,
+            customerName: `${form.firstName} ${form.lastName}`.trim(),
+            customerEmail: form.email,
+            totalAmount: (paymentIntent.amount || 0) / 100
+          });
+          
+          setStep('confirmation');
+          return;
+        } catch (cashError) {
+          console.error('Failed to create cash payment:', cashError);
+          setErrors({ payment: 'Failed to process cash payment. Please contact support.' });
+          return;
+        }
+      }
 
       // If no booking_id in metadata, try to find the booking by payment_intent_id
       if (!bookingId) {
@@ -216,29 +380,74 @@ const Checkout: React.FC = () => {
         throw new Error('No booking ID found in payment intent');
       }
 
-      // Update booking status to confirmed
+      // Handle Stripe card payment - immediate confirmation
       if (bookingId) {
         try {
           await supabaseHelpers.updateBookingStatus(bookingId, 'confirmed');
           console.log('✅ Booking confirmed:', bookingId);
           console.log('🔄 Starting email notification process...');
 
-          // Send booking confirmation email
+          // Trigger automation for Stripe booking confirmation
           try {
-            console.log('🔄 Attempting to send booking confirmation email for booking:', bookingId);
-            console.log('📧 Calling bookingEmailService.sendBookingConfirmationById...');
+            console.log('🎯 Triggering booking_confirmed automation for Stripe:', bookingId);
+            await bookingAutomationIntegration.onBookingConfirmed(bookingId, 'stripe');
+          } catch (automationError) {
+            console.error('❌ Stripe automation trigger failed (non-critical):', automationError);
+          }
 
-            const emailResult = await bookingEmailService.sendBookingConfirmationById(bookingId);
-            console.log('📧 Email service result:', emailResult);
+          // Send Stripe booking confirmation email
+          try {
+            console.log('🔄 Attempting to send Stripe booking confirmation email for booking:', bookingId);
+            
+            // Track email event
+            monitoringService.trackEmailEvent({
+              eventType: 'email_queued',
+              emailType: 'booking_confirmation_stripe',
+              bookingId: bookingId,
+              recipientEmail: form.email,
+              timestamp: new Date().toISOString()
+            });
 
-            if (emailResult) {
-              console.log('✅ Booking confirmation email sent successfully!', {
-                bookingId: bookingId
+            const emailData = {
+              bookingId,
+              guestName: `${form.firstName} ${form.lastName}`.trim(),
+              guestEmail: form.email,
+              propertyName,
+              checkIn: dates.from!,
+              checkOut: dates.to!,
+              guests,
+              totalAmount: quote?.totalCents ? quote.totalCents / 100 : 0,
+              currency: quote.currency,
+              paymentMethod: 'stripe' as const,
+              stripeData: {
+                paymentIntentId: paymentIntent.id
+              }
+            };
+
+            const emailSent = await paymentEmailService.sendStripeBookingConfirmation(emailData);
+
+            if (emailSent) {
+              console.log('✅ Stripe booking confirmation email sent successfully!', { bookingId });
+              
+              monitoringService.trackEmailEvent({
+                eventType: 'email_sent',
+                emailType: 'booking_confirmation_stripe',
+                bookingId: bookingId,
+                recipientEmail: form.email,
+                provider: 'payment_email_service',
+                timestamp: new Date().toISOString()
               });
             } else {
-              console.error('❌ Failed to send booking confirmation email');
-              // Note: Email failure doesn't prevent booking confirmation
-              console.log('📧 Email will be retried later or sent manually');
+              console.error('❌ Failed to send Stripe booking confirmation email');
+              
+              monitoringService.trackEmailEvent({
+                eventType: 'email_failed',
+                emailType: 'booking_confirmation_stripe',
+                bookingId: bookingId,
+                recipientEmail: form.email,
+                errorMessage: 'Email service failed',
+                timestamp: new Date().toISOString()
+              });
             }
           } catch (emailError) {
             console.error('💥 Email service error:', emailError);
@@ -328,43 +537,49 @@ const Checkout: React.FC = () => {
 
             {/* Payment Step */}
             {step === 'payment' && clientSecret && (
-              <div className="space-y-6">
-                <div className="flex items-center gap-2 mb-4">
-                  <Lock className="h-5 w-5 text-green-600" />
-                  <span className="text-sm text-gray-600">Secure payment powered by Stripe</span>
-                </div>
+              <PaymentErrorBoundary
+                onRetry={() => window.location.reload()}
+                onGoBack={() => setStep('details')}
+              >
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Lock className="h-5 w-5 text-green-600" />
+                    <span className="text-sm text-gray-600">Secure payment powered by Stripe</span>
+                  </div>
 
-                <Elements
-                  stripe={stripePromise}
-                  options={{
-                    clientSecret,
-                    appearance: stripeAppearance,
-                    locale: 'en',
-                  }}
-                >
-                  <StripePaymentForm
-                    amount={quote.totalCents}
-                    currency={quote.currency}
-                    bookingDetails={{
-                      unitName: propertyName || 'Property',
-                      checkIn: dates.from!,
-                      checkOut: dates.to!,
-                      guests,
-                      nights: quote.nights,
+                  <Elements
+                    stripe={stripePromise}
+                    options={{
+                      clientSecret,
+                      appearance: stripeAppearance,
+                      locale: 'en',
                     }}
-                    customerDetails={{
-                      name: `${form.firstName} ${form.lastName}`.trim(),
-                      email: form.email,
-                    }}
-                    onSuccess={onPaymentSuccess}
-                    onError={onPaymentError}
-                  />
-                </Elements>
-              </div>
+                  >
+                    <StripePaymentForm
+                      amount={quote.totalCents}
+                      currency={quote.currency}
+                      bookingId={bookingId}
+                      bookingDetails={{
+                        unitName: propertyName || 'Property',
+                        checkIn: dates.from!,
+                        checkOut: dates.to!,
+                        guests,
+                        nights: quote.nights,
+                      }}
+                      customerDetails={{
+                        name: `${form.firstName} ${form.lastName}`.trim(),
+                        email: form.email,
+                      }}
+                      onSuccess={onPaymentSuccess}
+                      onError={onPaymentError}
+                    />
+                  </Elements>
+                </div>
+              </PaymentErrorBoundary>
             )}
 
             {/* Confirmation Step */}
-            {step === 'confirmation' && result && (
+            {step === 'confirmation' && result && !sepaPayment && (
               <BookingConfirmation
                 bookingId={result.bookingId}
                 unitName={propertyName || 'Property'}
@@ -378,6 +593,26 @@ const Checkout: React.FC = () => {
                 onViewBooking={() => {
                   reset();
                   navigate(`/view-booking/${result.bookingId}`);
+                }}
+                onBackToHome={() => {
+                  reset();
+                  navigate('/');
+                }}
+              />
+            )}
+
+            {/* SEPA Payment Confirmation */}
+            {step === 'confirmation' && sepaPayment && (
+              <SEPAPaymentConfirmation
+                sepaPayment={sepaPayment as SEPAPayment} // Cast to SEPAPayment for props
+                bookingId={bookingId}
+                onCopyReference={(referenceCode) => {
+                  console.log('Reference code copied:', referenceCode);
+                  // You can add toast notification here
+                }}
+                onDownloadInstructions={(payment) => {
+                  console.log('Downloading instructions for payment:', payment);
+                  // You can implement PDF generation here
                 }}
                 onBackToHome={() => {
                   reset();

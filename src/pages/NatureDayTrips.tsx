@@ -8,7 +8,6 @@ import { Separator } from "@/components/ui/separator";
 import { MapPin, Clock, Camera, Users, ArrowRight, Calendar, Info, Star, Trees, Mountain, Waves, Car, Sun, Snowflake, Shield } from "lucide-react";
 import lithaiosRiver from "@/assets/lithaios-river-real.jpg";
 import meteoraReal from "@/assets/meteora-real.jpg";
-import Footer from "@/components/Footer";
 import Map, { MapLocation } from "@/components/Map";
 
 const highlights = [
@@ -624,7 +623,6 @@ const NatureDayTrips: React.FC = () => {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 };

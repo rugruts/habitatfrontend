@@ -1,7 +1,6 @@
 import React from "react";
 import { Helmet } from "react-helmet-async";
 import { Card, CardContent } from "@/components/ui/card";
-import Footer from "@/components/Footer";
 import hero from "@/assets/hero-trikala.jpg";
 
 const posts = [
@@ -36,7 +35,6 @@ const Blog: React.FC = () => {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 };

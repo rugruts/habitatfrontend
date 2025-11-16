@@ -6,8 +6,8 @@ export interface RateRule {
   description?: string;
   property_id: string;
   rule_type: 'seasonal' | 'weekend' | 'holiday' | 'minimum_stay' | 'advance_booking' | 'last_minute' | 'custom';
-  start_date?: string;
-  end_date?: string;
+  start_date?: string | null;
+  end_date?: string | null;
   days_of_week?: number[];
   price_modifier: number;
   modifier_type: 'percentage' | 'fixed_amount' | 'absolute_price';
@@ -16,7 +16,7 @@ export interface RateRule {
   advance_booking_days?: number;
   is_active: boolean;
   priority: number;
-  conditions: Record<string, any>;
+  conditions: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -68,8 +68,8 @@ export interface CreateRateRuleData {
   description?: string;
   property_id: string;
   rule_type: RateRule['rule_type'];
-  start_date?: string;
-  end_date?: string;
+  start_date?: string | null;
+  end_date?: string | null;
   days_of_week?: number[];
   price_modifier: number;
   modifier_type: RateRule['modifier_type'];
@@ -78,7 +78,7 @@ export interface CreateRateRuleData {
   advance_booking_days?: number;
   is_active?: boolean;
   priority?: number;
-  conditions?: Record<string, any>;
+  conditions?: Record<string, unknown>;
 }
 
 export interface CreateBlackoutDateData {

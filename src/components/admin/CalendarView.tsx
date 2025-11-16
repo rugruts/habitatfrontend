@@ -53,7 +53,12 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [bookings, setBookings] = useState<Booking[]>([]);
-  const [properties, setProperties] = useState<any[]>([]);
+  const [properties, setProperties] = useState<{
+    id: string;
+    name: string;
+    slug: string;
+    base_price: number;
+  }[]>([]);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
   const [showBookingDialog, setShowBookingDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);

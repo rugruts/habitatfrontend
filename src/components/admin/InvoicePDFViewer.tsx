@@ -40,7 +40,7 @@ export const InvoicePDFViewer: React.FC<InvoicePDFViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [pdfData, setPdfData] = useState<InvoiceData | null>(null);
 
-  const prepareInvoiceData = async () => {
+  const prepareInvoiceData = React.useCallback(async () => {
     if (!invoiceData || !isOpen) return;
 
     setLoading(true);
@@ -88,13 +88,13 @@ export const InvoicePDFViewer: React.FC<InvoicePDFViewerProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [invoiceData, isOpen, invoiceNumber]);
 
   useEffect(() => {
     if (isOpen && invoiceData) {
       prepareInvoiceData();
     }
-  }, [isOpen, invoiceData]);
+  }, [isOpen, invoiceData, prepareInvoiceData]);
 
   useEffect(() => {
     // Clean up data when modal closes

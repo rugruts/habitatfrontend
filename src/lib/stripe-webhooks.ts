@@ -1,17 +1,15 @@
-import Stripe from 'stripe';
 import { supabaseHelpers } from './supabase';
 
-// Initialize Stripe with secret key (server-side only)
-const STRIPE_SECRET_KEY = import.meta.env.VITE_STRIPE_SECRET_KEY || 'sk_test_placeholder';
-const stripe = typeof window === 'undefined'
-  ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2025-07-30.basil' })
-  : null;
+// NOTE: Stripe webhook handling should be done on the backend
+// This file is kept for reference but webhooks should be processed server-side
+// where the Stripe secret key can be safely used
+// DO NOT use Stripe secret key in frontend code!
 
 export interface WebhookEvent {
   id: string;
   type: string;
   data: {
-    object: Stripe.PaymentIntent | Stripe.Charge | Stripe.Dispute | Stripe.Invoice | Record<string, unknown>;
+    object: Record<string, unknown>;
   };
   created: number;
 }

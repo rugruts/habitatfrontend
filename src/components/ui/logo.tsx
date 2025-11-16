@@ -59,9 +59,6 @@ const LogoWithText: React.FC<LogoWithTextProps> = ({
           <span className="font-serif font-bold text-lg leading-none">
             Habitat Lobby
           </span>
-          <span className="text-xs text-muted-foreground font-sans">
-            Boutique Stays
-          </span>
         </div>
       )}
     </div>

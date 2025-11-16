@@ -15,7 +15,7 @@ export interface CalendarSync {
   next_sync_at?: string;
   total_bookings_synced: number;
   last_error?: string;
-  settings: Record<string, any>;
+  settings: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -30,7 +30,7 @@ export interface CalendarSyncLog {
   bookings_updated: number;
   bookings_removed: number;
   error_message?: string;
-  sync_details: Record<string, any>;
+  sync_details: Record<string, unknown>;
   started_at: string;
   completed_at?: string;
   duration_ms?: number;
@@ -50,7 +50,7 @@ export interface ExternalBooking {
   guest_count: number;
   status: string;
   platform: CalendarSync['platform'];
-  raw_data: Record<string, any>;
+  raw_data: Record<string, unknown>;
   created_at: string;
   updated_at: string;
 }
@@ -63,7 +63,7 @@ export interface CreateCalendarSyncData {
   ical_url?: string;
   sync_frequency_hours?: number;
   is_active?: boolean;
-  settings?: Record<string, any>;
+  settings?: Record<string, unknown>;
 }
 
 export interface UpdateCalendarSyncData extends Partial<CreateCalendarSyncData> {
@@ -243,7 +243,11 @@ export class CalendarSyncService {
   }
 
   // Trigger manual sync
-  async triggerSync(syncId: string): Promise<any> {
+  async triggerSync(syncId: string): Promise<{
+    success: boolean;
+    message: string;
+    syncId: string;
+  }> {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;

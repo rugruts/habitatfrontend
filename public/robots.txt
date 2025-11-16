@@ -1,26 +1,21 @@
 User-agent: *
 Allow: /
 
-# Disallow admin and private pages
-Disallow: /admin/
-Disallow: /checkout/
-Disallow: /view-booking/
+# Sitemap
+Sitemap: https://habitatlobby.com/sitemap.xml
 
-# Disallow API endpoints
-Disallow: /api/
-
-# Allow important pages for SEO
-Allow: /
-Allow: /about
-Allow: /about-trikala
-Allow: /about-trikala/cycling-city
-Allow: /apartments
-Allow: /apartments/*
-Allow: /check-availability/*
-Allow: /contact
-
-# Sitemap location
-Sitemap: https://habitat-lobby.lovable.app/sitemap.xml
-
-# Crawl delay (be respectful)
+# Crawl-delay
 Crawl-delay: 1
+
+# Disallow admin areas
+Disallow: /admin/
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /_next/
+Disallow: /checkout/
+
+# Allow important pages
+Allow: /apartments/
+Allow: /about/
+Allow: /about-trikala/
+Allow: /cycling-city/

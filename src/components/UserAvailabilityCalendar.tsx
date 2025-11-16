@@ -10,6 +10,7 @@ import { format, differenceInDays, addDays, isBefore, startOfDay } from "date-fn
 import { useBookingStore } from "@/state/bookingStore";
 import { api, centsToEUR } from "@/lib/api";
 import { supabaseHelpers } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 
 interface UserAvailabilityCalendarProps {
   unitSlug: string;
@@ -79,9 +80,8 @@ const UserAvailabilityCalendar: React.FC<UserAvailabilityCalendarProps> = ({
   maxGuests = 4
 }) => {
   const navigate = useNavigate();
-  const { setUnit, setDates, setGuests: setStoreGuests, setQuote } = useBookingStore();
+  const { guests, setUnit, setDates, setGuests, setQuote } = useBookingStore();
   const [selectedRange, setSelectedRange] = useState<DateRange | undefined>();
-  const [guests, setGuests] = useState(2);
   const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
   const [isBooking, setIsBooking] = useState(false);
   const [availabilityResult, setAvailabilityResult] = useState<{
@@ -98,7 +98,14 @@ const UserAvailabilityCalendar: React.FC<UserAvailabilityCalendarProps> = ({
   } | null>(null);
   const [availableDates, setAvailableDates] = useState<Set<string>>(new Set());
   const [isLoadingAvailability, setIsLoadingAvailability] = useState(true);
-  const [propertyData, setPropertyData] = useState<any>(null);
+  const [propertyData, setPropertyData] = useState<{
+    id: string;
+    name: string;
+    base_price: number;
+    max_guests: number;
+    bedrooms: number;
+    bathrooms: number;
+  } | null>(null);
 
   const today = startOfDay(new Date());
 
@@ -279,7 +286,7 @@ const UserAvailabilityCalendar: React.FC<UserAvailabilityCalendarProps> = ({
         from: format(selectedRange.from, 'yyyy-MM-dd'),
         to: format(selectedRange.to, 'yyyy-MM-dd')
       });
-      setStoreGuests(guests);
+      setGuests(guests);
 
       // Get quote
       const quote = await api.quote({
@@ -304,200 +311,253 @@ const UserAvailabilityCalendar: React.FC<UserAvailabilityCalendarProps> = ({
 
 
   return (
-    <div className="space-y-6">
-      {/* Date Selection */}
-      <Card className="border-0 shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CalendarDays className="h-5 w-5 text-accent" />
-            Select Your Dates
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Choose your check-in and check-out dates (minimum 2 nights)
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center">
-            <Calendar
-              mode="range"
-              selected={selectedRange}
-              onSelect={handleRangeSelect}
-              disabled={disabledDays}
-              numberOfMonths={2}
-              className="rounded-md border"
-              classNames={{
-                day_selected: "bg-accent text-white hover:bg-accent/90",
-                day_range_middle: "bg-accent/20 text-accent-foreground",
-                day_range_start: "bg-accent text-white",
-                day_range_end: "bg-accent text-white",
-                day_disabled: "text-muted-foreground opacity-50 cursor-not-allowed",
-              }}
-            />
+    <div className="space-y-4 md:space-y-6">
+      {/* Enhanced Date Selection */}
+      <div className="space-y-4">
+        <div className="flex justify-center">
+          <Calendar
+            mode="range"
+            selected={selectedRange}
+            onSelect={handleRangeSelect}
+            disabled={disabledDays}
+            numberOfMonths={window.innerWidth > 768 ? 2 : 1}
+            className="rounded-lg border-0 shadow-lg bg-white p-4"
+            classNames={{
+              months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+              month: "space-y-4",
+              caption: "flex justify-center pt-1 relative items-center mb-4",
+              caption_label: "text-lg font-semibold text-gray-800",
+              nav: "space-x-1 flex items-center",
+              nav_button: "h-8 w-8 bg-blue-50 hover:bg-blue-100 p-0 rounded-full transition-colors",
+              nav_button_previous: "absolute left-1",
+              nav_button_next: "absolute right-1",
+              table: "w-full border-collapse space-y-1",
+              head_row: "flex",
+              head_cell: "text-gray-500 rounded-md w-10 h-10 font-medium text-sm flex items-center justify-center",
+              row: "flex w-full mt-2",
+              cell: "h-10 w-10 text-center text-sm p-0 relative hover:bg-blue-50 rounded-lg transition-colors [&:has([aria-selected].day-range-end)]:rounded-r-lg [&:has([aria-selected].day-outside)]:bg-blue-100/50 [&:has([aria-selected])]:bg-blue-100 first:[&:has([aria-selected])]:rounded-l-lg last:[&:has([aria-selected])]:rounded-r-lg focus-within:relative focus-within:z-20",
+              day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 rounded-lg flex items-center justify-center transition-all duration-200 hover:scale-110",
+              day_selected: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg",
+              day_range_middle: "bg-blue-100 text-blue-800 hover:bg-blue-200",
+              day_range_start: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg",
+              day_range_end: "bg-blue-600 text-white hover:bg-blue-700 shadow-lg",
+              day_disabled: "text-gray-300 opacity-40 cursor-not-allowed bg-gray-50 pointer-events-none line-through",
+              day_today: "bg-amber-100 text-amber-800 font-bold border-2 border-amber-400 shadow-sm",
+              day_outside: "text-gray-400 opacity-50",
+            }}
+          />
+        </div>
+        
+        {/* Calendar Legend */}
+        <div className="flex items-center justify-center gap-6 text-xs bg-white rounded-lg p-4 shadow-sm border">
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-blue-600 rounded"></div>
+            <span className="text-gray-600">Selected</span>
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-amber-100 border-2 border-amber-400 rounded"></div>
+            <span className="text-gray-600">Today</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 bg-gray-200 rounded opacity-60"></div>
+            <span className="text-gray-600">Unavailable</span>
+          </div>
+        </div>
+      </div>
 
-      {/* Guest Selection */}
-      <Card className="border-0 shadow-lg">
+      {/* Enhanced Guest Selection */}
+      <Card className="border-0 shadow-lg bg-gradient-to-br from-blue-50 to-indigo-50">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-accent" />
+          <CardTitle className="flex items-center gap-2 text-gray-900">
+            <Users className="h-5 w-5 text-blue-600" />
             Number of Guests
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Guests</span>
-            <div className="flex items-center gap-3">
+            <div className="space-y-1">
+              <span className="text-sm font-medium text-gray-800">Guests</span>
+              <p className="text-xs text-gray-600">Maximum {maxGuests} guests</p>
+            </div>
+            <div className="flex items-center gap-3 bg-white rounded-xl p-2 shadow-sm border">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setGuests(Math.max(1, guests - 1))}
                 disabled={guests <= 1}
-                className="h-8 w-8 p-0"
+                className="h-10 w-10 p-0 rounded-full border-gray-200 hover:border-blue-300 hover:bg-blue-50 disabled:opacity-30"
               >
                 -
               </Button>
-              <span className="w-8 text-center font-medium">{guests}</span>
+              <span className="w-8 text-center font-bold text-lg text-gray-800">{guests}</span>
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setGuests(Math.min(maxGuests, guests + 1))}
                 disabled={guests >= maxGuests}
-                className="h-8 w-8 p-0"
+                className="h-10 w-10 p-0 rounded-full border-gray-200 hover:border-blue-300 hover:bg-blue-50 disabled:opacity-30"
               >
                 +
               </Button>
             </div>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Maximum {maxGuests} guests
-          </p>
         </CardContent>
       </Card>
 
-      {/* Selection Summary */}
+      {/* Enhanced Selection Summary */}
       {selectedRange?.from && (
-        <Card className="border-0 shadow-lg bg-gray-50">
+        <Card className="border-0 shadow-xl bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200">
           <CardContent className="pt-6">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Dates:</span>
-                <span className="text-sm">{formatDateRange()}</span>
+            <div className="space-y-4">
+              <div className="text-center mb-4">
+                <h3 className="text-lg font-semibold text-emerald-800 mb-2">Your Selection</h3>
               </div>
-              {nights > 0 && (
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Nights:</span>
-                  <span className="text-sm">{nights} night{nights > 1 ? 's' : ''}</span>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <CalendarDays className="h-4 w-4 text-emerald-600" />
+                    <span className="text-sm font-medium text-gray-700">Dates</span>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-900">{formatDateRange()}</span>
                 </div>
-              )}
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Guests:</span>
-                <span className="text-sm">{guests} guest{guests > 1 ? 's' : ''}</span>
+                {nights > 0 && (
+                  <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <Clock className="h-4 w-4 text-emerald-600" />
+                      <span className="text-sm font-medium text-gray-700">Duration</span>
+                    </div>
+                    <span className="text-sm font-semibold text-gray-900">{nights} night{nights > 1 ? 's' : ''}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-emerald-600" />
+                    <span className="text-sm font-medium text-gray-700">Guests</span>
+                  </div>
+                  <span className="text-sm font-semibold text-gray-900">{guests} guest{guests > 1 ? 's' : ''}</span>
+                </div>
               </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Check Availability Button */}
+      {/* Enhanced Check Availability Button */}
       <Button
         onClick={checkAvailability}
         disabled={!selectedRange?.from || !selectedRange?.to || isCheckingAvailability}
-        className="w-full h-12 text-lg font-semibold"
-        variant="accent"
+        className={cn(
+          "w-full h-14 text-lg font-bold rounded-xl transition-all duration-300 shadow-xl",
+          (!selectedRange?.from || !selectedRange?.to)
+            ? "bg-gray-400 hover:bg-gray-500 cursor-not-allowed"
+            : "bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 hover:shadow-2xl hover:scale-[1.02]"
+        )}
       >
         {isCheckingAvailability ? (
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 animate-spin" />
+          <div className="flex items-center gap-3">
+            <Clock className="h-5 w-5 animate-spin" />
             Checking Availability...
           </div>
         ) : (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            <CalendarDays className="h-5 w-5" />
             Check Availability
-            <ArrowRight className="h-4 w-4" />
+            <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
           </div>
         )}
       </Button>
 
-      {/* Availability Result */}
+      {/* Enhanced Availability Result */}
       {availabilityResult && (
-        <Card className={`border-0 shadow-lg ${
+        <Card className={cn(
+          "border-0 shadow-2xl transform transition-all duration-500 animate-in slide-in-from-bottom-4",
           availabilityResult.available
-            ? 'bg-green-50 border-green-200'
-            : 'bg-red-50 border-red-200'
-        }`}>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3">
+            ? 'bg-gradient-to-br from-emerald-50 to-green-50 border border-emerald-200'
+            : 'bg-gradient-to-br from-red-50 to-rose-50 border border-red-200'
+        )}>
+          <CardContent className="p-6 md:p-8">
+            <div className="text-center mb-6">
               {availabilityResult.available ? (
-                <CheckCircle className="h-6 w-6 text-green-600 flex-shrink-0" />
+                <div className="space-y-3">
+                  <div className="w-16 h-16 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center mx-auto shadow-lg">
+                    <CheckCircle className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-emerald-800 mb-1">Perfect!</p>
+                    <p className="text-emerald-700 font-medium">{availabilityResult.message}</p>
+                  </div>
+                </div>
               ) : (
-                <XCircle className="h-6 w-6 text-red-600 flex-shrink-0" />
+                <div className="space-y-3">
+                  <div className="w-16 h-16 bg-gradient-to-r from-red-500 to-rose-500 rounded-full flex items-center justify-center mx-auto shadow-lg">
+                    <XCircle className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-red-800 mb-1">Not Available</p>
+                    <p className="text-red-700 font-medium">{availabilityResult.message}</p>
+                  </div>
+                </div>
               )}
-              <div className="flex-1">
-                <p className={`font-medium ${
-                  availabilityResult.available ? 'text-green-800' : 'text-red-800'
-                }`}>
-                  {availabilityResult.available ? 'Available!' : 'Not Available'}
-                </p>
-                <p className={`text-sm ${
-                  availabilityResult.available ? 'text-green-700' : 'text-red-700'
-                }`}>
-                  {availabilityResult.message}
-                </p>
-              </div>
             </div>
 
             {availabilityResult.available && (
-              <div className="mt-4 pt-4 border-t border-green-200">
-                {/* Pricing Breakdown */}
+              <div className="space-y-6">
+                {/* Enhanced Pricing Breakdown */}
                 {availabilityResult.priceBreakdown ? (
-                  <div className="mb-4 p-4 bg-white rounded-lg border border-green-200">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Calculator className="h-4 w-4 text-green-600" />
-                      <span className="font-medium text-green-800">Price Breakdown</span>
+                  <div className="bg-white rounded-xl p-6 shadow-lg border border-emerald-200">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-full flex items-center justify-center">
+                        <Calculator className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-gray-900 text-lg">Price Breakdown</h4>
+                        <p className="text-sm text-gray-600">All fees included</p>
+                      </div>
                     </div>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between">
-                        <span>€{availabilityResult.priceBreakdown.basePrice} × {availabilityResult.priceBreakdown.nights} nights</span>
-                        <span>€{availabilityResult.priceBreakdown.subtotal}</span>
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-gray-700">€{availabilityResult.priceBreakdown.basePrice} × {availabilityResult.priceBreakdown.nights} nights</span>
+                        <span className="font-semibold text-gray-900">€{availabilityResult.priceBreakdown.subtotal}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span>Cleaning fee</span>
-                        <span>€{availabilityResult.priceBreakdown.cleaningFee}</span>
+                      <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <span className="text-gray-700">Cleaning fee</span>
+                        <span className="font-semibold text-gray-900">€{availabilityResult.priceBreakdown.cleaningFee}</span>
                       </div>
-                      <div className="flex justify-between font-semibold text-green-800 pt-2 border-t border-green-200">
-                        <span>Total</span>
-                        <span>€{availabilityResult.priceBreakdown.total}</span>
+                      <div className="flex justify-between items-center p-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl shadow-lg">
+                        <span className="text-lg font-bold">Total</span>
+                        <span className="text-2xl font-bold">€{availabilityResult.priceBreakdown.total}</span>
                       </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Calculator className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium text-blue-800">Pricing Available at Checkout</span>
+                  <div className="bg-white rounded-xl p-6 shadow-lg border border-blue-200">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                        <Euro className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-blue-800 text-lg">Pricing at Checkout</h4>
+                        <p className="text-sm text-blue-600">Final pricing will be calculated during booking</p>
+                      </div>
                     </div>
-                    <p className="text-sm text-blue-700">
-                      Final pricing will be calculated and displayed during the booking process.
-                    </p>
                   </div>
                 )}
 
                 <Button
                   onClick={handleContinueToBooking}
                   disabled={isBooking}
-                  className="w-full bg-green-600 hover:bg-green-700"
+                  className="w-full h-14 text-xl font-bold bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-xl"
                 >
                   {isBooking ? (
-                    <div className="flex items-center gap-2">
-                      <Clock className="h-4 w-4 animate-spin" />
-                      Preparing Booking...
+                    <div className="flex items-center gap-3">
+                      <Clock className="h-5 w-5 animate-spin" />
+                      Preparing Your Booking...
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5" />
                       Continue to Booking
-                      <ArrowRight className="h-4 w-4" />
+                      <ArrowRight className="h-5 w-5 group-hover:translate-x-1 transition-transform" />
                     </div>
                   )}
                 </Button>
@@ -506,22 +566,6 @@ const UserAvailabilityCalendar: React.FC<UserAvailabilityCalendarProps> = ({
           </CardContent>
         </Card>
       )}
-
-      {/* Legend */}
-      <Card className="border-0 shadow-sm bg-gray-50">
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-center gap-6 text-xs">
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-accent rounded"></div>
-              <span>Available</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-gray-300 rounded"></div>
-              <span>Unavailable</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 };

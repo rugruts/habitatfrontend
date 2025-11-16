@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,12 +16,12 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabaseHelpers } from "@/lib/supabase";
 import { centsToEUR } from "@/lib/api";
-import { useAdminAuth } from "@/contexts/AdminAuthContext";
+import { useAdminAuth } from "@/utils/adminAuthUtils";
 import { analyticsService, AnalyticsDashboard } from "@/services/AnalyticsService";
 import { cn } from "@/lib/utils";
 import { AvailabilityCalendar } from "@/components/AvailabilityCalendar";
 import CalendarView from "@/components/admin/CalendarView";
-import BookingManagement from "@/components/admin/BookingManagement";
+import { IntegratedBookingPaymentManagement } from "@/components/admin/IntegratedBookingPaymentManagement";
 
 import GuestManagement from "@/components/admin/GuestManagement";
 import PaymentInvoiceManagement from "@/components/admin/PaymentInvoiceManagement";
@@ -30,6 +30,11 @@ import EmailAutomationManagement from "@/components/admin/EmailAutomationManagem
 import CalendarSyncManagement from "@/components/admin/CalendarSyncManagement";
 import SettingsManagement from "@/components/admin/SettingsManagement";
 import UnitsRatesManagement from "@/components/admin/UnitsRatesManagement";
+import { ReviewManagement } from "@/components/admin/ReviewManagement";
+import { TranslationManagement } from "@/components/admin/TranslationManagement";
+import AdminLayout from "@/components/admin/AdminLayout";
+import MonitoringPanel from "@/components/admin/MonitoringBackup/MonitoringPanel";
+import BackupPanel from "@/components/admin/MonitoringBackup/BackupPanel";
 import {
   Calendar,
   Users,
@@ -71,7 +76,8 @@ import {
   ExternalLink,
   Copy,
   Check,
-  Globe
+  Globe,
+  Languages
 } from "lucide-react";
 
 // Types for property and booking data
@@ -197,6 +203,11 @@ const AdminDashboard: React.FC = () => {
     source: 'manual',
     notes: ''
   });
+
+  // Handle new booking dialog
+  const handleNewBooking = () => {
+    setShowNewBookingDialog(true);
+  };
 
   const handleLogout = async () => {
     await signOut();
@@ -387,87 +398,21 @@ const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <AdminLayout 
+      selectedTab={selectedTab} 
+      onTabChange={setSelectedTab}
+      onNewBooking={handleNewBooking}
+    >
       <Helmet>
         <title>Admin Dashboard - Habitat Lobby</title>
         <meta name="description" content="Comprehensive admin dashboard for managing bookings, guests, and property operations" />
       </Helmet>
 
-      {/* Simple Header */}
-      <div className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="container py-6">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="font-serif text-3xl text-primary">Admin Dashboard</h1>
-              <p className="text-muted-foreground">
-                Welcome back, {user?.email} • Manage bookings and availability
-              </p>
-            </div>
+      {/* Dashboard Content */}
+      <div className="space-y-6">
 
-            <div className="flex items-center gap-3">
-              <Button onClick={() => setShowNewBookingDialog(true)} className="w-fit">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Booking
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={handleLogout}
-                className="w-fit"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="container py-8">
-
-        {/* Simple Navigation Tabs */}
-        <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10 bg-white border border-gray-200">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <BarChart3 className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="bookings" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              Bookings
-            </TabsTrigger>
-            <TabsTrigger value="calendar" className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4" />
-              Calendar
-            </TabsTrigger>
-            <TabsTrigger value="units" className="flex items-center gap-2">
-              <Home className="h-4 w-4" />
-              Units & Rates
-            </TabsTrigger>
-            <TabsTrigger value="guests" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Guests
-            </TabsTrigger>
-            <TabsTrigger value="payments" className="flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Payments
-            </TabsTrigger>
-            <TabsTrigger value="emails" className="flex items-center gap-2">
-              <Mail className="h-4 w-4" />
-              Emails
-            </TabsTrigger>
-
-            <TabsTrigger value="sync" className="flex items-center gap-2">
-              <CalendarIcon className="h-4 w-4" />
-              Calendar Sync
-            </TabsTrigger>
-            <TabsTrigger value="settings" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Settings
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-6">
+        {selectedTab === "overview" && (
+          <div className="space-y-6">
             {/* Alerts Section */}
             {(stats.pendingPayments > 0 || stats.missingIds > 0 || stats.needsCleaning > 0) && (
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -776,24 +721,17 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="bookings" className="space-y-6">
-            <BookingManagement
-              onBookingUpdate={(booking) => {
-                console.log('Booking updated:', booking);
-                fetchBookings(); // Refresh bookings
-              }}
-              onBookingDelete={(bookingId) => {
-                console.log('Booking deleted:', bookingId);
-                fetchBookings(); // Refresh bookings
-              }}
-            />
-          </TabsContent>
+        {selectedTab === "bookings" && (
+          <div className="space-y-6">
+            <IntegratedBookingPaymentManagement />
+          </div>
+        )}
 
-
-
-          <TabsContent value="calendar" className="space-y-6">
+        {selectedTab === "calendar" && (
+          <div className="space-y-6">
             <CalendarView
               onBookingCreate={(booking) => {
                 console.log('New booking created:', booking);
@@ -808,34 +746,69 @@ const AdminDashboard: React.FC = () => {
                 fetchBookings(); // Refresh bookings
               }}
             />
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="units" className="space-y-6">
+        {selectedTab === "units" && (
+          <div className="space-y-6">
             <UnitsRatesManagement />
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="guests" className="space-y-6">
+        {selectedTab === "guests" && (
+          <div className="space-y-6">
             <GuestManagement />
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="payments" className="space-y-6">
+        {selectedTab === "payments" && (
+          <div className="space-y-6">
             <PaymentInvoiceManagement />
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="emails" className="space-y-6">
+        {selectedTab === "emails" && (
+          <div className="space-y-6">
             <EmailAutomationManagement />
-          </TabsContent>
+          </div>
+        )}
 
-
-
-          <TabsContent value="sync" className="space-y-6">
+        {selectedTab === "sync" && (
+          <div className="space-y-6">
             <CalendarSyncManagement />
-          </TabsContent>
+          </div>
+        )}
 
-          <TabsContent value="settings" className="space-y-6">
+        {selectedTab === "reviews" && (
+          <div className="space-y-6">
+            <ReviewManagement />
+          </div>
+        )}
+
+        {selectedTab === "settings" && (
+          <div className="space-y-6">
             <SettingsManagement />
-          </TabsContent>
-        </Tabs>
+          </div>
+        )}
+
+        {selectedTab === "translations" && (
+          <div className="space-y-6">
+            <TranslationManagement />
+          </div>
+        )}
+
+        {selectedTab === "monitoring" && (
+          <div className="space-y-6">
+            <MonitoringPanel />
+          </div>
+        )}
+
+        {selectedTab === "backup" && (
+          <div className="space-y-6">
+            <BackupPanel />
+          </div>
+        )}
+
 
         {/* New Booking Dialog */}
         <Dialog open={showNewBookingDialog} onOpenChange={setShowNewBookingDialog}>
@@ -1034,7 +1007,7 @@ const AdminDashboard: React.FC = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </div>
+    </AdminLayout>
   );
 };
 

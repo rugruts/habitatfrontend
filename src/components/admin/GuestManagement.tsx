@@ -97,15 +97,7 @@ const GuestManagement: React.FC = () => {
     type: 'general' as const
   });
 
-  useEffect(() => {
-    fetchGuests();
-  }, []);
-
-  useEffect(() => {
-    applyFilters();
-  }, [guests, filters]);
-
-  const fetchGuests = async () => {
+  const fetchGuests = React.useCallback(async () => {
     try {
       setLoading(true);
       console.log('🔍 Fetching guests with filters:', filters);
@@ -144,9 +136,9 @@ const GuestManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters]);
 
-  const applyFilters = () => {
+  const applyFilters = React.useCallback(() => {
     let filtered = [...guests];
 
     // Search filter
@@ -187,9 +179,16 @@ const GuestManagement: React.FC = () => {
     }
 
     setFilteredGuests(filtered);
-  };
+  }, [guests, filters]);
 
+  // Add useEffect hooks after function definitions
+  useEffect(() => {
+    fetchGuests();
+  }, [fetchGuests]);
 
+  useEffect(() => {
+    applyFilters();
+  }, [applyFilters]);
 
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();

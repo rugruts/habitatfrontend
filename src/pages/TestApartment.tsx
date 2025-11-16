@@ -26,7 +26,6 @@ import {
   TestTube
 } from "lucide-react";
 import BookingBar from "@/components/BookingBar";
-import Footer from "@/components/Footer";
 import { realAttractions } from "@/data/apartments";
 
 const TestApartment: React.FC = () => {
@@ -266,7 +265,6 @@ const TestApartment: React.FC = () => {
       </div>
 
       <BookingBar />
-      <Footer />
     </div>
   );
 };

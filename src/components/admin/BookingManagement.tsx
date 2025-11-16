@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -356,7 +356,6 @@ const BookingManagement: React.FC<BookingManagementProps> = ({
           check_out: editForm.check_out,
           guests: editForm.guests,
           total_amount: Math.round(editForm.total_amount * 100), // Convert to cents
-          subtotal: Math.round(editForm.total_amount * 100), // Also update subtotal
           status: editForm.status,
           special_requests: editForm.notes, // Map notes to special_requests
           updated_at: new Date().toISOString()
@@ -955,6 +954,9 @@ const BookingManagement: React.FC<BookingManagementProps> = ({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Edit Booking</DialogTitle>
+            <DialogDescription>
+              Update booking details and guest information.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>

@@ -37,40 +37,54 @@ import apt1Photo9 from "@/assets/appartment 1/PHOTO-2025-03-23-13-18-38.jpg";
 import apt1Photo10 from "@/assets/appartment 1/PHOTO-2025-03-23-13-18-46.jpg";
 import apt1Photo11 from "@/assets/appartment 1/PHOTO-2025-03-23-13-19-08.jpg";
 
-// Real attractions with exact coordinates
+// Real attractions with exact coordinates based on actual property location
 export const realAttractions: Attraction[] = [
   {
-    name: "Municipal Garden",
-    distance: "0.2 km",
-    time: "2-minute walk",
-    type: "nature",
+    name: "Mill of Elves Thematic Park",
+    distance: "0.1 km",
+    time: "1-minute walk",
+    type: "recreation",
     coordinates: { lat: 39.54621349532007, lng: 21.75862114087692 }
   },
   {
     name: "Traditional Taverna",
-    distance: "0.3 km",
-    time: "4-minute walk",
+    distance: "0.1 km",
+    time: "1-minute walk",
     type: "dining",
     coordinates: { lat: 39.54727604090631, lng: 21.76211705417508 }
   },
   {
-    name: "Trikala Castle",
-    distance: "0.5 km",
-    time: "6-minute walk",
+    name: "Trikala Byzantine Castle",
+    distance: "1.5 km",
+    time: "18-minute walk",
     type: "culture",
     coordinates: { lat: 39.55909282040134, lng: 21.762799831270158 }
   },
   {
     name: "Central Square",
-    distance: "0.4 km",
-    time: "4-minute walk",
+    distance: "1 km",
+    time: "12-minute walk",
     type: "dining",
     coordinates: { lat: 39.556069855057764, lng: 21.76777301543737 }
   },
   {
+    name: "Trikala Train Station",
+    distance: "0.2 km",
+    time: "2-minute walk",
+    type: "recreation",
+    coordinates: { lat: 39.5548, lng: 21.7681 }
+  },
+  {
+    name: "Supermarket",
+    distance: "0.1 km",
+    time: "1-minute walk",
+    type: "recreation",
+    coordinates: { lat: 39.5545, lng: 21.7675 }
+  },
+  {
     name: "Meteora Monasteries",
-    distance: "21 km",
-    time: "25-minute drive",
+    distance: "25 km",
+    time: "30-minute drive",
     type: "unesco",
     coordinates: { lat: 39.7218601012325, lng: 21.62630267069926 }
   }

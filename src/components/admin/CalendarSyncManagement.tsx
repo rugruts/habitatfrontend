@@ -654,7 +654,7 @@ const CalendarSyncManagement: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Platform</Label>
-                <Select value={syncForm.platform} onValueChange={(value: any) => setSyncForm(prev => ({ ...prev, platform: value }))}>
+                <Select value={syncForm.platform} onValueChange={(value: string) => setSyncForm(prev => ({ ...prev, platform: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -669,7 +669,7 @@ const CalendarSyncManagement: React.FC = () => {
               </div>
               <div>
                 <Label>Sync Type</Label>
-                <Select value={syncForm.sync_type} onValueChange={(value: any) => setSyncForm(prev => ({ ...prev, sync_type: value }))}>
+                <Select value={syncForm.sync_type} onValueChange={(value: string) => setSyncForm(prev => ({ ...prev, sync_type: value }))}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>

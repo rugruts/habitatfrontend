@@ -1,0 +1,13 @@
+{
+  "name": "Habitat Lobby - Luxury Premium Apartments",
+  "short_name": "Habitat Lobby",
+  "description": "Luxury premium apartments in Trikala, Greece's cycling capital. Book direct for best rates.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0F172A",
+  "theme_color": "#0F172A",
+  "orientation": "portrait-primary",
+  "categories": ["travel", "lodging", "business"],
+  "lang": "en",
+  "dir": "ltr"
+}

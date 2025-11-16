@@ -17,10 +17,22 @@ import { centsToEUR } from "@/lib/api";
 
 type PaymentMethod = 'card' | 'paypal' | 'bank';
 
+interface PaymentData {
+  method: PaymentMethod;
+  cardData?: {
+    number: string;
+    expiry: string;
+    cvc: string;
+    name: string;
+    country: string;
+    postalCode: string;
+  };
+}
+
 type Props = {
   totalCents: number;
   currency: string;
-  onPaymentSubmit: (paymentData: any) => Promise<void>;
+  onPaymentSubmit: (paymentData: PaymentData) => Promise<void>;
   loading?: boolean;
   className?: string;
 };

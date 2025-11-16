@@ -9,6 +9,7 @@ import { PriceBreakdown } from "@/components/PriceBreakdown";
 import { api, centsToEUR } from "@/lib/api";
 import { useBookingStore } from "@/state/bookingStore";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "@/hooks/useTranslation";
 import { cn } from "@/lib/utils";
 import {
   Calendar,
@@ -23,9 +24,11 @@ import {
   Check,
   ArrowRight
 } from "lucide-react";
+import { LoadingSpinner } from "@/components/ui/loading";
 
-export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> = ({ unitSlug, className }) => {
+export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> = React.memo(({ unitSlug, className }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { dates, guests, setDates, setGuests, setUnit, quote, setQuote } = useBookingStore();
   const [range, setRange] = React.useState<DateRange | undefined>(undefined);
   const [loading, setLoading] = React.useState(false);
@@ -38,7 +41,9 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
   const nights = range?.from && range?.to ?
     Math.ceil((range.to.getTime() - range.from.getTime()) / (1000 * 60 * 60 * 24)) : 0;
 
-  const fetchQuote = async () => {
+  const nightsText = nights === 1 ? t('booking.nights') : t('booking.nightsPlural');
+
+  const fetchQuote = React.useCallback(async () => {
     if (!canQuote) return;
     setLoading(true); setError(undefined);
     try {
@@ -50,12 +55,13 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
       });
       setDates({ from: range!.from!.toISOString().slice(0,10), to: range!.to!.toISOString().slice(0,10) });
       setQuote(res);
-    } catch (e:any) {
-      setError(e.message ?? "Failed to quote");
+    } catch (e: unknown) {
+      const errorMessage = e instanceof Error ? e.message : "Failed to quote";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
-  };
+  }, [canQuote, range, guests, unitSlug, setDates, setQuote]);
 
   const startCheckout = async () => {
     if (!quote) return;
@@ -68,11 +74,11 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
       const timer = setTimeout(fetchQuote, 500);
       return () => clearTimeout(timer);
     }
-  }, [range, guests]);
+  }, [canQuote, fetchQuote]);
 
   return (
     <Card className={cn(
-      "shadow-2xl border-0 bg-gradient-to-br from-white via-white to-accent/5 sticky top-8 overflow-hidden",
+      "shadow-2xl border-0 bg-gradient-to-br from-white via-white to-accent/5 lg:sticky lg:top-8 overflow-hidden",
       className
     )}>
       {/* Premium Header */}
@@ -82,14 +88,14 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
           <div className="flex items-center justify-between mb-2">
             <CardTitle className="text-xl font-serif flex items-center gap-2">
               <Calendar className="h-5 w-5" />
-              Check Availability
+              {t('widget.checkAvailability')}
             </CardTitle>
             <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
               <Star className="h-3 w-3 mr-1" />
-              Best Rate
+              {t('widget.bestRate')}
             </Badge>
           </div>
-          <p className="text-white/90 text-sm">Check dates and secure your booking</p>
+          <p className="text-white/90 text-sm">{t('widget.checkDates')}</p>
         </div>
       </CardHeader>
 
@@ -99,11 +105,11 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
           <div className="flex items-center justify-between">
             <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
               <Calendar className="h-4 w-4 text-accent" />
-              Check-in & Check-out
+              {t('widget.checkinCheckout')}
             </label>
             {nights > 0 && (
               <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/20 font-medium">
-                {nights} night{nights > 1 ? 's' : ''}
+                {nights} {nightsText}
               </Badge>
             )}
           </div>
@@ -144,7 +150,7 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
                     ) : (
                       <div>
                         <div className="font-medium text-gray-600">Select your dates</div>
-                        <div className="text-xs text-gray-400">Choose check-in and check-out</div>
+                        <div className="text-xs text-gray-400">{t('booking.selectDates')}</div>
                       </div>
                     )}
                   </div>
@@ -159,7 +165,7 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
         <div className="space-y-4">
           <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
             <Users className="h-4 w-4 text-accent" />
-            Guests
+            {t('booking.guests')}
           </label>
           <div className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
             <div className="flex items-center gap-3">
@@ -167,8 +173,8 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
                 <Users className="h-4 w-4 text-accent" />
               </div>
               <div>
-                <div className="font-medium text-gray-900">{guests} guest{guests > 1 ? 's' : ''}</div>
-                <div className="text-xs text-gray-500">Maximum 6 guests</div>
+                            <div className="font-medium text-gray-900">{guests} {guests === 1 ? t('summary.guest') : t('summary.guests')}</div>
+            <div className="text-xs text-gray-500">{t('booking.maxGuests', { max: '6' })}</div>
               </div>
             </div>
             <div className="flex items-center gap-2">
@@ -226,16 +232,16 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
             <div className="space-y-3">
               <h4 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                 <Shield className="h-4 w-4 text-green-600" />
-                Why book with us?
+                {t('widget.whyBookWithUs')}
               </h4>
               <div className="grid grid-cols-1 gap-3">
                 <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg border border-green-100">
                   <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-green-800">Free cancellation up to 48h</span>
+                  <span className="text-sm font-medium text-green-800">{t('widget.freeCancellation48h')}</span>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg border border-blue-100">
                   <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  <span className="text-sm font-medium text-blue-800">Instant confirmation guaranteed</span>
+                  <span className="text-sm font-medium text-blue-800">{t('widget.instantConfirmation')}</span>
                 </div>
                 <div className="flex items-center gap-3 p-3 bg-yellow-50 rounded-lg border border-yellow-100">
                   <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
@@ -263,16 +269,21 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
             disabled={!quote || loading}
           >
             <div className="flex items-center justify-center gap-2">
-              {quote ? (
+              {loading ? (
+                <>
+                  <LoadingSpinner size="sm" />
+                  <span>Checking availability...</span>
+                </>
+              ) : quote ? (
                 <>
                   <Check className="h-5 w-5" />
-                  <span>Available - Book Now {centsToEUR(quote.totalCents)}</span>
+                  <span>{t('widget.available')} {centsToEUR(quote.totalCents)}</span>
                   <ArrowRight className="h-5 w-5" />
                 </>
               ) : (
                 <>
                   <Calendar className="h-5 w-5" />
-                  <span>Check Availability</span>
+                  <span>{t('widget.checkAvailability')}</span>
                 </>
               )}
             </div>
@@ -282,10 +293,10 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
             <div className="text-center space-y-2">
               <div className="flex items-center justify-center gap-2 text-sm text-green-700 bg-green-50 px-4 py-2 rounded-lg border border-green-200">
                 <Check className="h-4 w-4" />
-                <span className="font-medium">No payment required now</span>
+                <span className="font-medium">{t('widget.noPaymentRequired')}</span>
               </div>
               <p className="text-xs text-gray-500">
-                Secure your booking risk-free • Pay at property
+                {t('widget.secureBooking')}
               </p>
             </div>
           )}
@@ -293,13 +304,13 @@ export const BookingWidget: React.FC<{ unitSlug: string; className?: string }> =
           {!quote && !loading && (
             <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-100">
               <MapPin className="h-5 w-5 text-gray-400 mx-auto mb-2" />
-              <p className="text-sm text-gray-600 font-medium">Ready to explore Trikala?</p>
-              <p className="text-xs text-gray-500 mt-1">Choose your dates to see live pricing</p>
+              <p className="text-sm text-gray-600 font-medium">{t('widget.readyToExplore')}</p>
+              <p className="text-xs text-gray-500 mt-1">{t('widget.chooseDates')}</p>
             </div>
           )}
         </div>
       </CardContent>
     </Card>
   );
-};
+});
 

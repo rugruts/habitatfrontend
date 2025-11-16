@@ -17,7 +17,6 @@ import {
   ArrowLeft,
   Home
 } from 'lucide-react';
-import Footer from '@/components/Footer';
 
 interface BookingDetails {
   id: string;
@@ -50,9 +49,9 @@ const BookingConfirmation: React.FC = () => {
     if (bookingId) {
       fetchBookingDetails();
     }
-  }, [bookingId]);
+  }, [bookingId, fetchBookingDetails]);
 
-  const fetchBookingDetails = async () => {
+  const fetchBookingDetails = React.useCallback(async () => {
     try {
       setLoading(true);
       const bookingData = await supabaseHelpers.getBookingById(bookingId!);
@@ -67,7 +66,7 @@ const BookingConfirmation: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [bookingId]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-GB', {
@@ -257,8 +256,8 @@ const BookingConfirmation: React.FC = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
-                      <a href="mailto:hello@habitatlobby.com" className="text-blue-600 hover:underline">
-                        hello@habitatlobby.com
+                                    <a href="mailto:admin@habitatlobby.com" className="text-blue-600 hover:underline">
+                admin@habitatlobby.com
                       </a>
                     </div>
                     <div className="flex items-center gap-2">
@@ -283,7 +282,6 @@ const BookingConfirmation: React.FC = () => {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 };

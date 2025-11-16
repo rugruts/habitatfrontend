@@ -206,7 +206,7 @@ export const BookingConfirmation: React.FC<BookingConfirmationProps> = ({
               <div className="space-y-1 text-gray-600">
                 <div className="flex items-center gap-2">
                   <Mail className="h-4 w-4" />
-                  <span>hello@habitatlobby.com</span>
+                  <span>admin@habitatlobby.com</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4" />

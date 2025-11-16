@@ -29,8 +29,11 @@ import {
   ExternalLink,
   Send,
   Printer,
-  Mail
+  Mail,
+  Trash2,
+  Check
 } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
 import { centsToEUR } from '@/lib/api';
 
 interface Payment {
@@ -85,6 +88,12 @@ const PaymentInvoiceManagement: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('payments');
 
+  // Bulk selection state
+  const [selectedPaymentIds, setSelectedPaymentIds] = useState<Set<string>>(new Set());
+  const [selectedInvoiceIds, setSelectedInvoiceIds] = useState<Set<string>>(new Set());
+  const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
+  const [bulkDeleteType, setBulkDeleteType] = useState<'payments' | 'invoices'>('payments');
+
   const [paymentFilters, setPaymentFilters] = useState({
     search: '',
     status: 'all',
@@ -126,32 +135,20 @@ const PaymentInvoiceManagement: React.FC = () => {
     };
   } | null>(null);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
 
-  useEffect(() => {
-    applyPaymentFilters();
-  }, [payments, paymentFilters]);
-
-  useEffect(() => {
-    applyInvoiceFilters();
-  }, [invoices, invoiceFilters]);
 
   const syncPaymentsFromStripe = async () => {
     try {
       console.log('🔄 Syncing payments from Stripe...');
 
-      // Get the current session token
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      // Using API key authentication instead of session token
 
       // Call your backend API to sync Stripe payments
       const response = await fetch(`${import.meta.env.VITE_EMAIL_API_URL}/admin/sync-stripe-payments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'x-api-key': import.meta.env.VITE_EMAIL_API_KEY,
         },
       });
 
@@ -173,16 +170,14 @@ const PaymentInvoiceManagement: React.FC = () => {
     try {
       console.log('🔄 Syncing invoices from Stripe...');
 
-      // Get the current session token
-      const { data: { session } } = await supabase.auth.getSession();
-      const token = session?.access_token;
+      // Using API key authentication instead of session token
 
       // Call your backend API to sync Stripe invoices
       const response = await fetch(`${import.meta.env.VITE_EMAIL_API_URL}/admin/sync-stripe-invoices`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
+          'x-api-key': import.meta.env.VITE_EMAIL_API_KEY,
         },
       });
 
@@ -200,7 +195,7 @@ const PaymentInvoiceManagement: React.FC = () => {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = React.useCallback(async () => {
     try {
       setLoading(true);
 
@@ -217,10 +212,10 @@ const PaymentInvoiceManagement: React.FC = () => {
         id: payment.id,
         booking_id: payment.booking_id || '',
         stripe_payment_intent_id: payment.stripe_payment_intent_id || '',
-        amount: Math.round(payment.amount * 100), // Convert to cents
+        amount: Math.round(payment.amount), // Amount is already in cents from Stripe
         currency: payment.currency,
-        status: payment.status as any,
-        payment_method: payment.payment_method as any,
+        status: payment.status as 'pending' | 'succeeded' | 'failed' | 'canceled',
+        payment_method: payment.payment_method as 'card' | 'bank_transfer' | 'cash' | 'other',
         created_at: payment.created_at,
         // Use booking data if available, otherwise show as direct payment
         guest_name: payment.bookings?.customer_name || 'Direct Payment (No Booking)',
@@ -243,10 +238,10 @@ const PaymentInvoiceManagement: React.FC = () => {
         id: invoice.id,
         booking_id: invoice.booking_id || '',
         invoice_number: invoice.invoice_number || `INV-${invoice.id.slice(0, 8)}`,
-        amount: Math.round(invoice.amount * 100), // Convert to cents
-        tax_amount: Math.round(invoice.tax_amount * 100), // Convert to cents
-        total_amount: Math.round(invoice.total_amount * 100), // Convert to cents
-        status: invoice.status as any,
+        amount: Math.round(invoice.amount), // Amount is already in cents from Stripe
+        tax_amount: Math.round(invoice.tax_amount), // Amount is already in cents from Stripe
+        total_amount: Math.round(invoice.total_amount), // Amount is already in cents from Stripe
+        status: invoice.status as 'draft' | 'sent' | 'paid' | 'overdue' | 'canceled',
         issued_date: invoice.issued_date || new Date().toISOString().split('T')[0],
         due_date: invoice.due_date || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         pdf_url: invoice.pdf_url,
@@ -267,9 +262,9 @@ const PaymentInvoiceManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [paymentFilters.status, invoiceFilters.status]);
 
-  const applyPaymentFilters = () => {
+  const applyPaymentFilters = React.useCallback(() => {
     let filtered = [...payments];
 
     if (paymentFilters.search) {
@@ -286,9 +281,9 @@ const PaymentInvoiceManagement: React.FC = () => {
     }
 
     setFilteredPayments(filtered);
-  };
+  }, [payments, paymentFilters]);
 
-  const applyInvoiceFilters = () => {
+  const applyInvoiceFilters = React.useCallback(() => {
     let filtered = [...invoices];
 
     if (invoiceFilters.search) {
@@ -305,7 +300,7 @@ const PaymentInvoiceManagement: React.FC = () => {
     }
 
     setFilteredInvoices(filtered);
-  };
+  }, [invoices, invoiceFilters]);
 
   const getPaymentStatusBadge = (status: string) => {
     const variants = {
@@ -436,6 +431,127 @@ const PaymentInvoiceManagement: React.FC = () => {
   const openStripePayment = (paymentIntentId: string) => {
     window.open(`https://dashboard.stripe.com/payments/${paymentIntentId}`, '_blank');
   };
+
+  // Bulk selection handlers
+  const handleSelectAllPayments = (checked: boolean) => {
+    if (checked) {
+      setSelectedPaymentIds(new Set(filteredPayments.map(p => p.id)));
+    } else {
+      setSelectedPaymentIds(new Set());
+    }
+  };
+
+  const handleSelectPayment = (paymentId: string, checked: boolean) => {
+    const newSelected = new Set(selectedPaymentIds);
+    if (checked) {
+      newSelected.add(paymentId);
+    } else {
+      newSelected.delete(paymentId);
+    }
+    setSelectedPaymentIds(newSelected);
+  };
+
+  const handleSelectAllInvoices = (checked: boolean) => {
+    if (checked) {
+      setSelectedInvoiceIds(new Set(filteredInvoices.map(i => i.id)));
+    } else {
+      setSelectedInvoiceIds(new Set());
+    }
+  };
+
+  const handleSelectInvoice = (invoiceId: string, checked: boolean) => {
+    const newSelected = new Set(selectedInvoiceIds);
+    if (checked) {
+      newSelected.add(invoiceId);
+    } else {
+      newSelected.delete(invoiceId);
+    }
+    setSelectedInvoiceIds(newSelected);
+  };
+
+  // Bulk delete handlers
+  const handleBulkDeletePayments = () => {
+    if (selectedPaymentIds.size === 0) return;
+    setBulkDeleteType('payments');
+    setShowBulkDeleteDialog(true);
+  };
+
+  const handleBulkDeleteInvoices = () => {
+    if (selectedInvoiceIds.size === 0) return;
+    setBulkDeleteType('invoices');
+    setShowBulkDeleteDialog(true);
+  };
+
+  const confirmBulkDelete = async () => {
+    try {
+      if (bulkDeleteType === 'payments') {
+        // Delete selected payments from database
+        const { error } = await supabase
+          .from('payments')
+          .delete()
+          .in('id', Array.from(selectedPaymentIds));
+
+        if (error) throw error;
+
+        // Update local state
+        setPayments(prev => prev.filter(p => !selectedPaymentIds.has(p.id)));
+        setSelectedPaymentIds(new Set());
+        console.log(`✅ Deleted ${selectedPaymentIds.size} payments`);
+      } else {
+        // Delete selected invoices from database
+        const { error } = await supabase
+          .from('invoices')
+          .delete()
+          .in('id', Array.from(selectedInvoiceIds));
+
+        if (error) throw error;
+
+        // Update local state
+        setInvoices(prev => prev.filter(i => !selectedInvoiceIds.has(i.id)));
+        setSelectedInvoiceIds(new Set());
+        console.log(`✅ Deleted ${selectedInvoiceIds.size} invoices`);
+      }
+
+      setShowBulkDeleteDialog(false);
+      
+      // Refresh data to ensure consistency
+      await fetchData();
+    } catch (error) {
+      console.error('Error deleting items:', error);
+      alert('Failed to delete items. Please try again.');
+    }
+  };
+
+  const deleteAllTestPayments = async () => {
+    try {
+      // Delete all payments that look like test payments (e.g., "Direct Payment" entries)
+      const { error } = await supabase
+        .from('payments')
+        .delete()
+        .or('booking_id.is.null,stripe_payment_intent_id.like.pi_test%');
+
+      if (error) throw error;
+
+      console.log('✅ Deleted all test payments');
+      await fetchData(); // Refresh data
+    } catch (error) {
+      console.error('Error deleting test payments:', error);
+      alert('Failed to delete test payments. Please try again.');
+    }
+  };
+
+  // useEffect hooks
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  useEffect(() => {
+    applyPaymentFilters();
+  }, [applyPaymentFilters]);
+
+  useEffect(() => {
+    applyInvoiceFilters();
+  }, [applyInvoiceFilters]);
 
   return (
     <div className="space-y-6">
@@ -576,10 +692,25 @@ const PaymentInvoiceManagement: React.FC = () => {
 
           {/* Payments Table */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle>
                 Payments ({filteredPayments.length})
+                {selectedPaymentIds.size > 0 && (
+                  <span className="ml-2 text-sm text-blue-600">
+                    ({selectedPaymentIds.size} selected)
+                  </span>
+                )}
               </CardTitle>
+              {selectedPaymentIds.size > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDeletePayments}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Selected ({selectedPaymentIds.size})
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -589,6 +720,12 @@ const PaymentInvoiceManagement: React.FC = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-[50px]">
+                          <Checkbox
+                            checked={selectedPaymentIds.size === filteredPayments.length && filteredPayments.length > 0}
+                            onCheckedChange={handleSelectAllPayments}
+                          />
+                        </TableHead>
                         <TableHead>Guest</TableHead>
                         <TableHead>Property</TableHead>
                         <TableHead>Amount</TableHead>
@@ -728,16 +865,37 @@ const PaymentInvoiceManagement: React.FC = () => {
 
           {/* Invoices Table */}
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle>
                 Invoices ({filteredInvoices.length})
+                {selectedInvoiceIds.size > 0 && (
+                  <span className="ml-2 text-sm text-blue-600">
+                    ({selectedInvoiceIds.size} selected)
+                  </span>
+                )}
               </CardTitle>
+              {selectedInvoiceIds.size > 0 && (
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={handleBulkDeleteInvoices}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Selected ({selectedInvoiceIds.size})
+                </Button>
+              )}
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-[50px]">
+                        <Checkbox
+                          checked={selectedInvoiceIds.size === filteredInvoices.length && filteredInvoices.length > 0}
+                          onCheckedChange={handleSelectAllInvoices}
+                        />
+                      </TableHead>
                       <TableHead>Invoice #</TableHead>
                       <TableHead>Guest</TableHead>
                       <TableHead>Property</TableHead>
@@ -750,6 +908,12 @@ const PaymentInvoiceManagement: React.FC = () => {
                   <TableBody>
                     {filteredInvoices.map((invoice) => (
                       <TableRow key={invoice.id}>
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedInvoiceIds.has(invoice.id)}
+                            onCheckedChange={(checked) => handleSelectInvoice(invoice.id, checked as boolean)}
+                          />
+                        </TableCell>
                         <TableCell>
                           <p className="font-mono font-medium">{invoice.invoice_number}</p>
                         </TableCell>
@@ -955,6 +1119,32 @@ const PaymentInvoiceManagement: React.FC = () => {
               </Button>
               <Button onClick={processRefund} disabled={!refundForm.reason || refundForm.amount <= 0}>
                 Process Refund
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Delete Confirmation Dialog */}
+      <Dialog open={showBulkDeleteDialog} onOpenChange={setShowBulkDeleteDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Bulk Delete</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              Are you sure you want to delete {bulkDeleteType === 'payments' ? selectedPaymentIds.size : selectedInvoiceIds.size} selected {bulkDeleteType}?
+            </p>
+            <p className="text-xs text-red-600 font-medium">
+              This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowBulkDeleteDialog(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={confirmBulkDelete}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Delete {bulkDeleteType === 'payments' ? selectedPaymentIds.size : selectedInvoiceIds.size} {bulkDeleteType}
               </Button>
             </div>
           </div>

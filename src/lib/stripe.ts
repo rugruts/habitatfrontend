@@ -18,7 +18,8 @@ export { stripePromise };
 // Stripe configuration
 export const stripeConfig = {
   publishableKey: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY,
-  secretKey: import.meta.env.STRIPE_SECRET_KEY,
+  // NOTE: Secret key should NEVER be in frontend code!
+  // All backend operations must use the backend API
 };
 
 // Helper function to format currency

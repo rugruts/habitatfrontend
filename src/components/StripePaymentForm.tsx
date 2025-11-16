@@ -8,12 +8,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, CreditCard, Shield, CheckCircle } from 'lucide-react';
+import { Loader2, CreditCard, Shield, CheckCircle, Euro, Info, Building2 } from 'lucide-react';
 import { formatCurrency } from '@/lib/stripe';
+import PaymentMethodsSelector, { PaymentMethod } from './PaymentMethodsSelector';
+import { CashOnArrivalService } from '@/services/CashOnArrivalService';
+import { sepaPaymentService, SEPAPayment } from '@/services/SEPAPaymentService';
+import PaymentLoadingIndicator from './PaymentLoadingIndicator';
 
 interface StripePaymentFormProps {
   amount: number;
   currency: string;
+  bookingId?: string;
   bookingDetails: {
     unitName: string;
     checkIn: string;
@@ -25,13 +30,21 @@ interface StripePaymentFormProps {
     name: string;
     email: string;
   };
-  onSuccess: (paymentIntent: any) => void;
+  onSuccess: (paymentIntent: { 
+    id: string; 
+    status: string; 
+    amount: number;
+    metadata?: {
+      booking_id?: string;
+    };
+  }) => void;
   onError: (error: string) => void;
 }
 
 const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   amount,
   currency,
+  bookingId,
   bookingDetails,
   customerDetails,
   onSuccess,
@@ -40,19 +53,42 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<'idle' | 'validating' | 'processing' | 'confirming' | 'completing'>('idle');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod>('card');
+  const [showCashOnArrivalInfo, setShowCashOnArrivalInfo] = useState(false);
+  const [sepaPayment, setSepaPayment] = useState<SEPAPayment | null>(null);
+  const [showSepaInstructions, setShowSepaInstructions] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
-    if (!stripe || !elements) {
-      return;
-    }
-
     setIsLoading(true);
+    setLoadingStage('validating');
     setErrorMessage('');
 
     try {
+      // Handle cash on arrival separately
+      if (selectedPaymentMethod === 'cash_on_arrival') {
+        setLoadingStage('processing');
+        await handleCashOnArrival();
+        return;
+      }
+
+      // Handle SEPA bank transfer separately
+      if (selectedPaymentMethod === 'sepa') {
+        setLoadingStage('processing');
+        await handleSEPAPayment();
+        return;
+      }
+
+      // Handle other payment methods with Stripe
+      if (!stripe || !elements) {
+        throw new Error('Payment system not available. Please refresh and try again.');
+      }
+
+      setLoadingStage('processing');
+
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
         confirmParams: {
@@ -68,16 +104,97 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
       });
 
       if (error) {
-        setErrorMessage(error.message || 'An unexpected error occurred.');
-        onError(error.message || 'Payment failed');
+        // Enhanced error handling with specific error types
+        let userFriendlyMessage = 'Payment failed. Please try again.';
+        
+        if (error.type === 'card_error') {
+          userFriendlyMessage = error.message || 'Your card was declined. Please check your details or try a different card.';
+        } else if (error.type === 'validation_error') {
+          userFriendlyMessage = 'Please check your payment details and try again.';
+        } else if (error.type === 'api_error') {
+          userFriendlyMessage = 'Payment system temporarily unavailable. Please try again in a moment.';
+        }
+        
+        setErrorMessage(userFriendlyMessage);
+        onError(userFriendlyMessage);
       } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        setLoadingStage('confirming');
         onSuccess(paymentIntent);
       }
-    } catch (err) {
-      setErrorMessage('An unexpected error occurred.');
-      onError('An unexpected error occurred.');
+    } catch (error) {
+      console.error('Payment error:', error);
+      setErrorMessage('An unexpected error occurred during payment.');
+      onError('Payment failed');
     } finally {
       setIsLoading(false);
+      setLoadingStage('idle');
+    }
+  };
+
+  const handleCashOnArrival = async () => {
+    try {
+      // For cash on arrival, we'll create the booking after the payment intent
+      // This way we can use the actual booking ID from the backend
+      
+      // Simulate successful payment for cash on arrival
+      const mockPaymentIntent = {
+        id: `cash_${Date.now()}`,
+        status: 'succeeded',
+        amount: amount,
+        metadata: {
+          payment_method: 'cash_on_arrival',
+          booking_id: bookingId
+        }
+      };
+
+      onSuccess(mockPaymentIntent);
+    } catch (error) {
+      console.error('Cash on arrival error:', error);
+      setErrorMessage('Failed to process cash on arrival booking.');
+      onError('Cash on arrival booking failed');
+    }
+  };
+
+  const handleSEPAPayment = async () => {
+    try {
+      console.log('Processing SEPA bank transfer booking...');
+      
+      if (!bookingId) {
+        throw new Error('Booking ID is required for SEPA payment');
+      }
+
+      // Create SEPA payment record
+      const sepaPaymentData = await sepaPaymentService.createSEPAPayment(
+        bookingId,
+        amount,
+        currency,
+        {
+          name: customerDetails?.name || 'Guest',
+          email: customerDetails?.email || ''
+        }
+      );
+
+      console.log('SEPA payment created:', sepaPaymentData);
+      setSepaPayment(sepaPaymentData);
+      setShowSepaInstructions(true);
+
+      // Create a mock payment intent for SEPA (similar to cash on arrival)
+      const mockPaymentIntent = {
+        id: `sepa_${Date.now()}`,
+        status: 'succeeded',
+        amount: amount,
+        metadata: {
+          payment_method: 'sepa_bank_transfer',
+          booking_id: bookingId,
+          sepa_reference: sepaPaymentData.reference_code
+        }
+      };
+
+      onSuccess(mockPaymentIntent);
+    } catch (error) {
+      console.error('SEPA payment error:', error);
+      setErrorMessage('Failed to process SEPA bank transfer booking.');
+      onError('SEPA bank transfer booking failed');
     }
   };
 
@@ -121,6 +238,14 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
         </CardContent>
       </Card>
 
+      {/* Payment Methods Selector */}
+      <PaymentMethodsSelector
+        selectedMethod={selectedPaymentMethod}
+        onMethodChange={setSelectedPaymentMethod}
+        amount={amount}
+        currency={currency}
+      />
+
       {/* Payment Form */}
       <Card className="border-0 shadow-lg">
         <CardHeader>
@@ -130,12 +255,53 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Billing Address */}
-            <div>
-              <h3 className="text-sm font-medium mb-3">Billing Address</h3>
-              <AddressElement 
-                options={{
+          {/* Cash on Arrival Info */}
+          {selectedPaymentMethod === 'cash_on_arrival' && (
+            <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Euro className="h-5 w-5 text-blue-600 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-blue-900 mb-2">Cash on Arrival</h3>
+                  <p className="text-sm text-blue-700 mb-3">
+                    You can pay in cash when you arrive at the property. No payment is required now.
+                  </p>
+                  <div className="text-sm text-blue-600">
+                    <p><strong>Amount to pay:</strong> {formatCurrency(amount, currency)}</p>
+                    <p><strong>Payment location:</strong> At the property upon check-in</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SEPA Bank Transfer Info */}
+          {selectedPaymentMethod === 'sepa' && (
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Building2 className="h-5 w-5 text-green-600 mt-0.5" />
+                <div>
+                  <h3 className="font-medium text-green-900 mb-2">SEPA Bank Transfer</h3>
+                  <p className="text-sm text-green-700 mb-3">
+                    Pay via bank transfer using our IBAN. You will receive detailed payment instructions and a unique reference code.
+                  </p>
+                  <div className="text-sm text-green-600">
+                    <p><strong>Amount to pay:</strong> {formatCurrency(amount, currency)}</p>
+                    <p><strong>Processing time:</strong> 1-3 business days</p>
+                    <p><strong>Booking status:</strong> Pending until payment received</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Stripe Payment Elements (only for card payments) */}
+          {selectedPaymentMethod === 'card' && (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Billing Address */}
+              <div>
+                <h3 className="text-sm font-medium mb-3">Billing Address</h3>
+                <AddressElement 
+                  options={{
                   mode: 'billing',
                   allowedCountries: ['GR', 'US', 'GB', 'DE', 'FR', 'IT', 'ES'],
                 }}
@@ -155,6 +321,12 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
                 }}
               />
             </div>
+
+            {/* Payment Loading Indicator */}
+            <PaymentLoadingIndicator 
+              stage={loadingStage} 
+              isVisible={isLoading} 
+            />
 
             {/* Error Message */}
             {errorMessage && (
@@ -188,6 +360,49 @@ const StripePaymentForm: React.FC<StripePaymentFormProps> = ({
               )}
             </Button>
           </form>
+        )}
+
+        {/* Cash on Arrival Submit Button */}
+        {selectedPaymentMethod === 'cash_on_arrival' && (
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="w-full h-12 text-lg font-semibold bg-green-600 hover:bg-green-700"
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Processing Booking...
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Euro className="h-5 w-5" />
+                Confirm Cash on Arrival Booking
+              </div>
+            )}
+          </Button>
+        )}
+
+        {/* SEPA Bank Transfer Submit Button */}
+        {selectedPaymentMethod === 'sepa' && (
+          <Button
+            onClick={handleSubmit}
+            disabled={isLoading}
+            className="w-full h-12 text-lg font-semibold bg-blue-600 hover:bg-blue-700"
+          >
+            {isLoading ? (
+              <div className="flex items-center gap-2">
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Processing SEPA Booking...
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Building2 className="h-5 w-5" />
+                Confirm SEPA Bank Transfer Booking
+              </div>
+            )}
+          </Button>
+        )}
         </CardContent>
       </Card>
 

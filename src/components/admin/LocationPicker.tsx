@@ -159,7 +159,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
             <div className="flex gap-2">
               <div className="flex-1">
                 <Input
-                  placeholder="Search address (e.g., Alexandrias 69, Trikala, Greece)"
+                  placeholder="Search address (e.g., Alexandras 59, Trikala 42100, Greece)"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -226,7 +226,7 @@ export const LocationPicker: React.FC<LocationPickerProps> = ({
                 <Label htmlFor="address">Street Address *</Label>
                 <Input
                   id="address"
-                  placeholder="e.g., Alexandrias 69"
+                  placeholder="e.g., Alexandras 59"
                   value={location.address}
                   onChange={(e) => handleManualInput('address', e.target.value)}
                 />

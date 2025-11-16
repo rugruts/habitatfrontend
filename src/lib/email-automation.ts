@@ -5,7 +5,7 @@ export interface AutomationTrigger {
   type: 'booking_created' | 'check_in_approaching' | 'id_missing' | 'check_out_completed';
   bookingId: string;
   delayHours?: number;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 export class EmailAutomationScheduler {
@@ -33,7 +33,14 @@ export class EmailAutomationScheduler {
   }
 
   // Get active automations for a trigger type
-  private async getActiveAutomations(triggerType: string): Promise<any[]> {
+  private async getActiveAutomations(triggerType: string): Promise<{
+    id: string;
+    name: string;
+    template_id: string;
+    trigger_type: string;
+    trigger_delay_hours: number;
+    is_active: boolean;
+  }[]> {
     try {
       // This would be implemented in supabaseHelpers
       // For now, return mock data based on trigger type
@@ -81,7 +88,14 @@ export class EmailAutomationScheduler {
   }
 
   // Process individual automation
-  private async processAutomation(automation: any, trigger: AutomationTrigger): Promise<void> {
+  private async processAutomation(automation: {
+    id: string;
+    name: string;
+    template_id: string;
+    trigger_type: string;
+    trigger_delay_hours: number;
+    is_active: boolean;
+  }, trigger: AutomationTrigger): Promise<void> {
     try {
       const delayHours = trigger.delayHours ?? automation.trigger_delay_hours;
 
@@ -99,7 +113,14 @@ export class EmailAutomationScheduler {
   }
 
   // Send automation email immediately
-  private async sendAutomationEmail(automation: any, bookingId: string): Promise<void> {
+  private async sendAutomationEmail(automation: {
+    id: string;
+    name: string;
+    template_id: string;
+    trigger_type: string;
+    trigger_delay_hours: number;
+    is_active: boolean;
+  }, bookingId: string): Promise<void> {
     try {
       let result;
 
@@ -137,7 +158,14 @@ export class EmailAutomationScheduler {
   }
 
   // Schedule automation email for later
-  private async scheduleAutomationEmail(automation: any, bookingId: string, delayHours: number): Promise<void> {
+  private async scheduleAutomationEmail(automation: {
+    id: string;
+    name: string;
+    template_id: string;
+    trigger_type: string;
+    trigger_delay_hours: number;
+    is_active: boolean;
+  }, bookingId: string, delayHours: number): Promise<void> {
     try {
       const scheduledFor = new Date();
       scheduledFor.setHours(scheduledFor.getHours() + delayHours);
@@ -208,7 +236,19 @@ export class EmailAutomationScheduler {
   }
 
   // Process a single due email
-  private async processDueEmail(emailLog: any): Promise<void> {
+  private async processDueEmail(emailLog: {
+    id: string;
+    booking_id: string;
+    recipient_email: string;
+    recipient_name: string;
+    subject: string;
+    content: string;
+    template_id: string;
+    metadata?: {
+      trigger_type?: string;
+      automation_name?: string;
+    };
+  }): Promise<void> {
     try {
       // Update status to prevent duplicate processing
       await supabaseHelpers.updateEmailLogStatus(emailLog.id, 'sent');

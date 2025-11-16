@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import { useAdminAuth } from '@/contexts/AdminAuthContext';
+import { useAdminAuth } from '@/utils/adminAuthUtils';
 import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {

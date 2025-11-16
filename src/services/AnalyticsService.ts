@@ -370,7 +370,10 @@ export class AnalyticsService {
   }
 
   // Helper method to group data by time period
-  private groupByPeriod(bookings: any[], period: 'day' | 'week' | 'month' | 'year'): RevenueData[] {
+  private groupByPeriod(bookings: Array<{
+    check_in: string;
+    total_amount?: number;
+  }>, period: 'day' | 'week' | 'month' | 'year'): RevenueData[] {
     const grouped = new Map<string, { revenue: number; bookings: number }>();
 
     bookings.forEach(booking => {
@@ -378,20 +381,24 @@ export class AnalyticsService {
       let key: string;
 
       switch (period) {
-        case 'day':
+        case 'day': {
           key = date.toISOString().split('T')[0];
           break;
-        case 'week':
+        }
+        case 'week': {
           const weekStart = new Date(date);
           weekStart.setDate(date.getDate() - date.getDay());
           key = weekStart.toISOString().split('T')[0];
           break;
-        case 'month':
+        }
+        case 'month': {
           key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
           break;
-        case 'year':
+        }
+        case 'year': {
           key = String(date.getFullYear());
           break;
+        }
       }
 
       if (!grouped.has(key)) {

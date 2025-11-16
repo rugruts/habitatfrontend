@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Clock, Camera, Users, ArrowRight, Calendar, Info, Star, Coffee, ShoppingBag, Music, Heart, Utensils, Wine, Shield, Trees } from "lucide-react";
+import { MapPin, Clock, Camera, Users, ArrowRight, Calendar, Info, Star, Coffee, ShoppingBag, Music, Heart, Utensils, Wine, Shield, Trees, HelpCircle } from "lucide-react";
 import localLifeHero from "@/assets/local-life-hero.jpg";
 import marketStalls from "@/assets/market-stalls.jpg";
-import Footer from "@/components/Footer";
 import Map, { MapLocation } from "@/components/Map";
 
 const highlights = [
@@ -528,34 +527,23 @@ const LocalLife: React.FC = () => {
           </div>
         </section>
 
-        {/* FAQ Section */}
+        {/* More Questions Section */}
         <section className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">Frequently Asked Questions</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Common questions about experiencing local life in Trikala.
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-xl">Can I shop at the local market without speaking Greek?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Yes — vendors are used to visitors and happy to help with gestures and basic English.</p>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg">
-              <CardHeader>
-                <CardTitle className="text-xl">Are cafés laptop-friendly?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">Many have Wi-Fi, but the culture leans towards socializing rather than working. Perfect for people-watching!</p>
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="border-2 border-primary/20 bg-primary/5 text-center">
+            <CardContent className="p-8">
+              <HelpCircle className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">Questions About Local Life in Trikala?</h3>
+              <p className="text-muted-foreground mb-6">
+                Visit our comprehensive FAQ page for answers to questions about booking, 
+                local culture, dining, and making the most of your stay.
+              </p>
+              <Button asChild size="lg">
+                <Link to="/faq">
+                  View All FAQs
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Map Section */}
@@ -674,7 +662,6 @@ const LocalLife: React.FC = () => {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 };

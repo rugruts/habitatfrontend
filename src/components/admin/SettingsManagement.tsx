@@ -39,9 +39,9 @@ import {
 const SettingsManagement: React.FC = () => {
   const [businessSettings, setBusinessSettings] = useState<BusinessSettings>({
     business_name: 'Habitat Lobby',
-    business_address: 'Alexandrias 69, Trikala, Greece',
-    business_phone: '+30 243 123 4567',
-    business_email: 'info@habitatlobby.com',
+            business_address: 'Alexandras 59, Trikala 42100, Greece',
+          business_phone: '+30 697 769 0685',
+      business_email: 'admin@habitatlobby.com',
     business_website: 'https://habitatlobby.com',
     tax_id: 'GR123456789',
     currency: 'EUR',
@@ -51,8 +51,8 @@ const SettingsManagement: React.FC = () => {
 
   const [apiSettings, setApiSettings] = useState<APISettings>({
     stripe_publishable_key: import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '',
-    stripe_secret_key: import.meta.env.VITE_STRIPE_SECRET_KEY || '',
-    stripe_webhook_secret: import.meta.env.VITE_STRIPE_WEBHOOK_SECRET || '',
+    stripe_secret_key: '', // NEVER expose secret key in frontend - it's a security risk!
+    stripe_webhook_secret: '', // NEVER expose webhook secret in frontend
     postmark_api_key: '', // Not using Postmark anymore
     elorus_api_key: '',
     google_analytics_id: '',
@@ -128,17 +128,6 @@ const SettingsManagement: React.FC = () => {
       setAutomationSettings(automationData);
       setSecuritySettings(securityData);
 
-      // Update notification settings
-      if (settingsMap.notifications) {
-        setNotificationSettings(prev => ({
-          ...prev,
-          email_notifications: settingsMap.notifications.email_notifications ?? prev.email_notifications,
-          booking_notifications: settingsMap.notifications.booking_notifications ?? prev.booking_notifications,
-          payment_notifications: settingsMap.notifications.payment_notifications ?? prev.payment_notifications,
-          notification_email: settingsMap.notifications.notification_email || prev.notification_email
-        }));
-      }
-
     } catch (error) {
       console.error('Error fetching settings:', error);
     } finally {
@@ -146,7 +135,7 @@ const SettingsManagement: React.FC = () => {
     }
   };
 
-  const saveSettings = async (settingsType: string, settings: any) => {
+  const saveSettings = async (settingsType: string, settings: Record<string, unknown>) => {
     try {
       setSaving(true);
       console.log(`Saving ${settingsType} settings:`, settings);
@@ -268,8 +257,6 @@ const SettingsManagement: React.FC = () => {
     { value: 'en', label: 'English' },
     { value: 'el', label: 'Greek' },
     { value: 'de', label: 'German' },
-    { value: 'fr', label: 'French' },
-    { value: 'es', label: 'Spanish' }
   ];
 
   return (

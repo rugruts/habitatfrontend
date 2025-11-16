@@ -5,163 +5,142 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { MapPin, Clock, Camera, Users, ArrowRight, Calendar, Info, Star, Shield, Building, Home, Music, ShoppingBag, Landmark, Coffee, Trees } from "lucide-react";
+import { MapPin, Clock, Camera, Users, ArrowRight, Calendar, Info, Star, Shield, Building, Home, Music, ShoppingBag, Landmark, Coffee, Trees, HelpCircle } from "lucide-react";
 import expCastle from "@/assets/exp-castle.jpg";
-import Footer from "@/components/Footer";
 import Map, { MapLocation } from "@/components/Map";
+import { useTranslation } from "@/hooks/useTranslation";
 
-const highlights = [
-  {
-    title: "Byzantine Castle & Fortifications",
-    description: "Stone walls, shady paths, and a panoramic lookout—best at golden hour.",
-    icon: Shield,
-    category: "Historical",
-    duration: "45 min"
-  },
-  {
-    title: "Ottoman Clock Tower",
-    description: "A city symbol; stand beneath it to hear the quarter‑hour chimes.",
-    icon: Clock,
-    category: "Architecture",
-    duration: "15 min"
-  },
-  {
-    title: "Old Town Laderas & Varousi",
-    description: "Narrow lanes, painted houses, and courtyards—perfect for an evening stroll.",
-    icon: Home,
-    category: "Neighborhoods",
-    duration: "60 min"
-  },
-  {
-    title: "Trikalon Bridge & Riverside Walks",
-    description: "Historic stone bridges linking the center with leafy paths along the Lithaios.",
-    icon: Landmark,
-    category: "Landmarks",
-    duration: "30 min"
-  },
-  {
-    title: "Tsitsanis Museum / Cultural Spot",
-    description: "A tribute to composer Vassilis Tsitsanis; exhibitions and music heritage.",
-    icon: Music,
-    category: "Culture",
-    duration: "45 min"
-  },
-  {
-    title: "Local Market & Artisan Shops",
-    description: "Seasonal produce, herbs, and small workshops—great for authentic souvenirs.",
-    icon: ShoppingBag,
-    category: "Shopping",
-    duration: "30 min"
-  }
-];
 
-const itinerary = [
-  { time: "10:00", activity: "Coffee by the river → walk to Old Town." },
-  { time: "11:00", activity: "Climb to the Byzantine Castle (photo stop at the tower)." },
-  { time: "12:30", activity: "Browse the market streets; taste local pies." },
-  { time: "14:00", activity: "Lunch at a traditional taverna; try spetsofai or hilopites." },
-  { time: "16:00", activity: "Optional: visit a museum/gallery or relax by the river." }
-];
 
-const mapLocations: MapLocation[] = [
-  {
-    id: "byzantine-castle",
-    name: "Byzantine Castle (Kastro)",
-    description: "6th-century Byzantine fortress built by Emperor Justinian I, offering panoramic views over Trikala and the Thessalian plain",
-    lat: 39.559102790802754,
-    lng: 21.762777080536097,
-    type: "castle",
-    openingHours: "Daily 8:00-20:00 (Summer), 8:00-17:00 (Winter)",
-    entryFee: "Free"
-  },
-  {
-    id: "clock-tower",
-    name: "Ottoman Clock Tower (Roloi)",
-    description: "Iconic 1936 clock tower in the city center, built on the site of a former Ottoman minaret",
-    lat: 39.55824947509666,
-    lng: 21.76297011307814,
-    type: "tower",
-    openingHours: "External viewing only",
-    entryFee: "Free"
-  },
-  {
-    id: "varousi-district",
-    name: "Varousi Old Town",
-    description: "Historic Ottoman-era neighborhood with traditional architecture, narrow cobblestone streets, and preserved houses",
-    lat: 39.55919412926667,
-    lng: 21.76505951937856,
-    type: "district",
-    openingHours: "Always accessible",
-    entryFee: "Free"
-  },
-  {
-    id: "lithaios-bridge",
-    name: "Lithaios River Bridge",
-    description: "Historic stone bridge over the Lithaios River, part of the scenic riverside walking path",
-    lat: 39.55543617935153,
-    lng: 21.767761570925458,
-    type: "bridge",
-    openingHours: "Always accessible",
-    entryFee: "Free"
-  },
-  {
-    id: "tsitsanis-museum",
-    name: "Vassilis Tsitsanis Museum",
-    description: "Dedicated to the famous rebetiko composer born in Trikala, featuring his life and musical legacy",
-    lat: 39.55099735843994,
-    lng: 21.770118543820864,
-    type: "museum",
-    openingHours: "Tue-Sun 10:00-14:00, 18:00-21:00",
-    entryFee: "€3"
-  },
-  {
-    id: "central-square",
-    name: "Central Square (Plateia Riga Fereou)",
-    description: "Main town square surrounded by cafés, shops, and the Municipal Theater, heart of Trikala's social life",
-    lat: 39.55500912069906,
-    lng: 21.7678820839955,
-    type: "square",
-    openingHours: "Always accessible",
-    entryFee: "Free"
-  },
-  {
-    id: "municipal-theater",
-    name: "Municipal Theater of Trikala",
-    description: "Historic theater building hosting cultural performances, concerts, and local events",
-    lat: 39.546270169344986,
-    lng: 21.758822730744264,
-    type: "theater",
-    openingHours: "Performance schedule varies",
-    entryFee: "Ticket prices vary"
-  },
-  {
-    id: "asclepieion-site",
-    name: "Ancient Asclepieion Site",
-    description: "Archaeological site of the ancient healing sanctuary dedicated to Asclepius, birthplace of medical science",
-    lat: 39.55658207750388,
-    lng: 21.764800738897296,
-    type: "archaeological",
-    openingHours: "Daily 8:00-15:00",
-    entryFee: "€2"
-  },
-  {
-    id: "mill-of-elves",
-    name: "Mill of Elves Park",
-    description: "Famous Christmas theme park location, also a beautiful riverside park year-round",
-    lat: 39.546254698476204,
-    lng: 21.758652864742487,
-    type: "park",
-    openingHours: "Always accessible (Christmas park Dec-Jan)",
-    entryFee: "Free (Christmas park entry fee applies)"
-  }
-];
+
 
 const HistoryCulture: React.FC = () => {
+  const { t } = useTranslation();
+
+  // Define highlights with translations
+  const highlights = [
+    {
+      title: t('historyCulture.highlights.castle.title'),
+      description: t('historyCulture.highlights.castle.description'),
+      icon: Shield,
+      category: t('historyCulture.highlights.castle.category'),
+      duration: t('historyCulture.highlights.castle.duration')
+    },
+    {
+      title: t('historyCulture.highlights.clockTower.title'),
+      description: t('historyCulture.highlights.clockTower.description'),
+      icon: Clock,
+      category: t('historyCulture.highlights.clockTower.category'),
+      duration: t('historyCulture.highlights.clockTower.duration')
+    },
+    {
+      title: t('historyCulture.highlights.oldTown.title'),
+      description: t('historyCulture.highlights.oldTown.description'),
+      icon: Home,
+      category: t('historyCulture.highlights.oldTown.category'),
+      duration: t('historyCulture.highlights.oldTown.duration')
+    },
+    {
+      title: t('historyCulture.highlights.bridge.title'),
+      description: t('historyCulture.highlights.bridge.description'),
+      icon: Landmark,
+      category: t('historyCulture.highlights.bridge.category'),
+      duration: t('historyCulture.highlights.bridge.duration')
+    },
+    {
+      title: t('historyCulture.highlights.museum.title'),
+      description: t('historyCulture.highlights.museum.description'),
+      icon: Music,
+      category: t('historyCulture.highlights.museum.category'),
+      duration: t('historyCulture.highlights.museum.duration')
+    },
+    {
+      title: t('historyCulture.highlights.market.title'),
+      description: t('historyCulture.highlights.market.description'),
+      icon: ShoppingBag,
+      category: t('historyCulture.highlights.market.category'),
+      duration: t('historyCulture.highlights.market.duration')
+    }
+  ];
+
+  // Define itinerary with translations
+  const itinerary = [
+    { time: "10:00", activity: t('historyCulture.itinerary.morning1') },
+    { time: "11:00", activity: t('historyCulture.itinerary.morning2') },
+    { time: "12:30", activity: t('historyCulture.itinerary.midday') },
+    { time: "14:00", activity: t('historyCulture.itinerary.lunch') },
+    { time: "16:00", activity: t('historyCulture.itinerary.afternoon') }
+  ];
+
+  // Define map locations with translations
+  const mapLocations: MapLocation[] = [
+    {
+      id: "byzantine-castle",
+      name: t('historyCulture.map.locations.byzantineCastle'),
+      description: t('historyCulture.map.locations.byzantineCastleDesc'),
+      lat: 39.559102790802754,
+      lng: 21.762777080536097,
+      type: "castle",
+      openingHours: "Daily 8:00-20:00 (Summer), 8:00-17:00 (Winter)",
+      entryFee: "Free"
+    },
+    {
+      id: "clock-tower",
+      name: t('historyCulture.map.locations.clockTower'),
+      description: t('historyCulture.map.locations.clockTowerDesc'),
+      lat: 39.55824947509666,
+      lng: 21.76297011307814,
+      type: "tower",
+      openingHours: "External viewing only",
+      entryFee: "Free"
+    },
+    {
+      id: "varousi-district",
+      name: t('historyCulture.map.locations.varousDistrict'),
+      description: t('historyCulture.map.locations.varousDistrictDesc'),
+      lat: 39.55919412926667,
+      lng: 21.76505951937856,
+      type: "district",
+      openingHours: "Always accessible",
+      entryFee: "Free"
+    },
+    {
+      id: "lithaios-bridge",
+      name: t('historyCulture.map.locations.lithaioBridge'),
+      description: t('historyCulture.map.locations.lithaioBridgeDesc'),
+      lat: 39.55724947509666,
+      lng: 21.76397011307814,
+      type: "bridge",
+      openingHours: "Always accessible",
+      entryFee: "Free"
+    },
+    {
+      id: "tsitsanis-museum",
+      name: t('historyCulture.map.locations.tsitsanisMuseum'),
+      description: t('historyCulture.map.locations.tsitsanisMuseumDesc'),
+      lat: 39.55624947509666,
+      lng: 21.76197011307814,
+      type: "museum",
+      openingHours: "Tue-Sun 9:00-15:00",
+      entryFee: "€3"
+    },
+    {
+      id: "mill-of-elves",
+      name: t('historyCulture.map.locations.millOfElves'),
+      description: t('historyCulture.map.locations.millOfElvesDesc'),
+      lat: 39.55424947509666,
+      lng: 21.75997011307814,
+      type: "district",
+      openingHours: "Always accessible (Christmas park Dec-Jan)",
+      entryFee: "Free (Christmas park entry fee applies)"
+    }
+  ];
+
   return (
     <main className="min-h-screen bg-background text-foreground">
       <Helmet>
-        <title>History & Culture of Trikala | Habitat Lobby</title>
-        <meta name="description" content="Explore Trikala's history—Byzantine castle, Ottoman clock tower, stone bridges, museums, and local traditions. Plan your stay with Habitat Lobby." />
+        <title>{t('historyCulture.title')}</title>
+        <meta name="description" content={t('historyCulture.description')} />
         <link rel="canonical" href="https://habitat-lobby.lovable.app/about-trikala/history-culture" />
         <script type="application/ld+json">
           {JSON.stringify({
@@ -195,27 +174,26 @@ const HistoryCulture: React.FC = () => {
         <div className="relative z-10 text-center text-white max-w-5xl mx-auto px-6">
           <div className="space-y-6">
             <Badge variant="outline" className="border-white/30 text-white bg-white/10 backdrop-blur-sm">
-              Cultural Heritage Guide
+              {t('historyCulture.hero.badge')}
             </Badge>
             <h1 className="font-serif text-5xl md:text-7xl lg:text-8xl mb-6 leading-tight">
-              History & Culture
+              {t('historyCulture.hero.title')}
             </h1>
             <div className="space-y-4 max-w-3xl mx-auto">
               <p className="text-2xl md:text-3xl font-light leading-relaxed">
-                Stories written in stone
+                {t('historyCulture.hero.subtitle')}
               </p>
               <p className="text-lg md:text-xl opacity-90 leading-relaxed font-light">
-                From Byzantine walls to riverside bridges and living traditions, Trikala's past is woven into everyday life.
-                Discover centuries of history through cobblestone streets, ancient fortifications, and cultural landmarks.
+                {t('historyCulture.hero.description')}
               </p>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-12">
             <Button asChild size="lg" className="bg-accent hover:bg-accent/90 text-white font-medium px-8 py-3">
-              <Link to="/apartments">See Apartments</Link>
+              <Link to="/apartments">{t('historyCulture.hero.planVisit')}</Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="border-white/50 text-white hover:bg-white hover:text-black font-medium px-8 py-3 backdrop-blur-sm">
-              <a href="#map">Map of Sights</a>
+              <a href="#map">{t('historyCulture.hero.exploreHistory')}</a>
             </Button>
           </div>
         </div>
@@ -225,20 +203,19 @@ const HistoryCulture: React.FC = () => {
         {/* Deep Historical Timeline */}
         <section className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">2,300 Years of History</h2>
+            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">{t('historyCulture.timeline.title')}</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              From ancient Trikka to modern Trikala, discover how this strategic location in Thessaly has been continuously inhabited,
-              witnessing the rise and fall of empires while preserving its unique cultural identity.
+              {t('historyCulture.timeline.description')}
             </p>
           </div>
 
           {/* Ancient Period */}
           <div className="mb-20">
             <div className="text-center mb-12">
-              <Badge className="bg-amber-100 text-amber-800 mb-4">Ancient Era</Badge>
-              <h3 className="font-serif text-3xl md:text-4xl mb-4">Ancient Trikka (3rd century BC - 4th century AD)</h3>
+              <Badge className="bg-amber-100 text-amber-800 mb-4">{t('historyCulture.eras.ancient')}</Badge>
+              <h3 className="font-serif text-3xl md:text-4xl mb-4">{t('historyCulture.timeline.ancient.title')}</h3>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                The birthplace of Asclepius, god of medicine, and a sacred healing center of the ancient world.
+                {t('historyCulture.timeline.ancient.description')}
               </p>
             </div>
 
@@ -246,31 +223,27 @@ const HistoryCulture: React.FC = () => {
               <div className="space-y-6">
                 <Card className="border-l-4 border-l-amber-500">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-xl mb-3">Sacred Healing Center</h4>
+                    <h4 className="font-semibold text-xl mb-3">{t('historyCulture.ancient.healing.title')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      Ancient Trikka was renowned throughout the Greek world as the birthplace of Asclepius, the god of medicine.
-                      Pilgrims traveled from across the Mediterranean to seek healing at the sacred Asclepieion, making Trikka
-                      one of the most important medical centers of antiquity.
+                      {t('historyCulture.ancient.healing.description')}
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="border-l-4 border-l-amber-500">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-xl mb-3">Strategic Location</h4>
+                    <h4 className="font-semibold text-xl mb-3">{t('historyCulture.ancient.strategic.title')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      Positioned at the crossroads of ancient trade routes, Trikka controlled access between northern and southern Greece.
-                      The fertile Thessalian plains provided abundant resources, while the nearby mountains offered natural protection.
+                      {t('historyCulture.ancient.strategic.description')}
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="border-l-4 border-l-amber-500">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-xl mb-3">Archaeological Evidence</h4>
+                    <h4 className="font-semibold text-xl mb-3">{t('historyCulture.ancient.archaeological.title')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      Excavations have revealed ancient walls, pottery, and inscriptions dating to the Hellenistic period.
-                      The discovery of medical instruments and votive offerings confirms the city's reputation as a healing sanctuary.
+                      {t('historyCulture.ancient.archaeological.description')}
                     </p>
                   </CardContent>
                 </Card>
@@ -279,28 +252,26 @@ const HistoryCulture: React.FC = () => {
               <div className="space-y-6">
                 <Card className="bg-amber-50 border-amber-200">
                   <CardHeader>
-                    <CardTitle className="text-2xl font-serif text-amber-800">The Asclepius Legend</CardTitle>
+                    <CardTitle className="text-2xl font-serif text-amber-800">{t('historyCulture.stories.asclepius.title')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-amber-700 leading-relaxed mb-4">
-                      According to ancient sources, Asclepius was born in Trikka to Apollo and the mortal princess Coronis.
-                      Raised by the centaur Chiron, he became the greatest healer of the ancient world.
+                      {t('historyCulture.stories.asclepius.description1')}
                     </p>
                     <p className="text-amber-700 leading-relaxed">
-                      The Asclepieion of Trikka was considered the original and most sacred of all healing temples,
-                      predating even the famous sanctuary at Epidaurus.
+                      {t('historyCulture.stories.asclepius.description2')}
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-lg mb-3 text-amber-800">Did You Know?</h4>
+                    <h4 className="font-semibold text-lg mb-3 text-amber-800">{t('historyCulture.ancient.didYouKnow.title')}</h4>
                     <ul className="space-y-2 text-amber-700">
-                      <li>• Homer mentions Trikka in the Iliad as sending ships to Troy</li>
-                      <li>• The city minted its own coins featuring Asclepius</li>
-                      <li>• Ancient medical texts reference "Trikkaean healing methods"</li>
-                      <li>• The modern medical symbol (Rod of Asclepius) originates here</li>
+                      <li>• {t('historyCulture.ancient.didYouKnow.fact1')}</li>
+                      <li>• {t('historyCulture.ancient.didYouKnow.fact2')}</li>
+                      <li>• {t('historyCulture.ancient.didYouKnow.fact3')}</li>
+                      <li>• {t('historyCulture.ancient.didYouKnow.fact4')}</li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -311,10 +282,10 @@ const HistoryCulture: React.FC = () => {
           {/* Byzantine Period */}
           <div className="mb-20">
             <div className="text-center mb-12">
-              <Badge className="bg-purple-100 text-purple-800 mb-4">Medieval Era</Badge>
-              <h3 className="font-serif text-3xl md:text-4xl mb-4">Byzantine Trikala (4th - 15th century)</h3>
+              <Badge className="bg-purple-100 text-purple-800 mb-4">{t('historyCulture.eras.medieval')}</Badge>
+              <h3 className="font-serif text-3xl md:text-4xl mb-4">{t('historyCulture.timeline.byzantine.title')}</h3>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                A fortified stronghold defending the empire's northern borders and a center of Orthodox Christianity.
+                {t('historyCulture.timeline.byzantine.description')}
               </p>
             </div>
 
@@ -322,17 +293,14 @@ const HistoryCulture: React.FC = () => {
               <div className="space-y-6">
                 <Card className="bg-purple-50 border-purple-200">
                   <CardHeader>
-                    <CardTitle className="text-2xl font-serif text-purple-800">The Great Fortress</CardTitle>
+                    <CardTitle className="text-2xl font-serif text-purple-800">{t('historyCulture.stories.fortress.title')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-purple-700 leading-relaxed mb-4">
-                      The imposing castle that dominates Trikala's skyline was built in the 6th century AD on the site
-                      of the ancient acropolis. Emperor Justinian I ordered its construction as part of his massive
-                      fortification program to defend the empire's Balkan frontiers.
+                      {t('historyCulture.stories.fortress.description1')}
                     </p>
                     <p className="text-purple-700 leading-relaxed">
-                      The fortress withstood numerous sieges by Bulgars, Serbs, and later Ottoman forces,
-                      serving as the administrative center of the Byzantine theme of Hellas.
+                      {t('historyCulture.stories.fortress.description2')}
                     </p>
                   </CardContent>
                 </Card>
@@ -341,31 +309,27 @@ const HistoryCulture: React.FC = () => {
               <div className="space-y-6">
                 <Card className="border-l-4 border-l-purple-500">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-xl mb-3">Religious Center</h4>
+                    <h4 className="font-semibold text-xl mb-3">{t('historyCulture.byzantine.religious.title')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      Byzantine Trikala was home to numerous churches and monasteries. The city served as a bishopric,
-                      with its religious influence extending throughout Thessaly. Many Byzantine churches still stand today,
-                      hidden within the old town's narrow streets.
+                      {t('historyCulture.byzantine.religious.description')}
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="border-l-4 border-l-purple-500">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-xl mb-3">Trade & Crafts</h4>
+                    <h4 className="font-semibold text-xl mb-3">{t('historyCulture.byzantine.trade.title')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      The city flourished as a center of silk production and metalworking. Byzantine craftsmen created
-                      exquisite religious artifacts, jewelry, and textiles that were traded throughout the empire and beyond.
+                      {t('historyCulture.byzantine.trade.description')}
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="border-l-4 border-l-purple-500">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-xl mb-3">Cultural Legacy</h4>
+                    <h4 className="font-semibold text-xl mb-3">{t('historyCulture.byzantine.legacy.title')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      Byzantine architectural elements are still visible throughout Trikala. The characteristic red brick
-                      and stone construction, arched windows, and decorative patterns influenced local building styles for centuries.
+                      {t('historyCulture.byzantine.legacy.description')}
                     </p>
                   </CardContent>
                 </Card>
@@ -376,10 +340,10 @@ const HistoryCulture: React.FC = () => {
           {/* Ottoman Period */}
           <div className="mb-20">
             <div className="text-center mb-12">
-              <Badge className="bg-emerald-100 text-emerald-800 mb-4">Ottoman Era</Badge>
-              <h3 className="font-serif text-3xl md:text-4xl mb-4">Ottoman Trikala (1393 - 1881)</h3>
+              <Badge className="bg-emerald-100 text-emerald-800 mb-4">{t('historyCulture.eras.ottoman')}</Badge>
+              <h3 className="font-serif text-3xl md:text-4xl mb-4">{t('historyCulture.timeline.ottoman.title')}</h3>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Nearly five centuries of Ottoman rule that transformed the city's architecture, culture, and daily life.
+                {t('historyCulture.timeline.ottoman.description')}
               </p>
             </div>
 
@@ -387,33 +351,27 @@ const HistoryCulture: React.FC = () => {
               <div className="space-y-6">
                 <Card className="border-l-4 border-l-emerald-500">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-xl mb-3">Administrative Capital</h4>
+                    <h4 className="font-semibold text-xl mb-3">{t('historyCulture.ottoman.administrative.title')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      Trikala became the seat of a major Ottoman sanjak (administrative district), governing much of Thessaly.
-                      The city's strategic importance grew as it controlled key routes between Constantinople and the empire's
-                      western territories.
+                      {t('historyCulture.ottoman.administrative.description')}
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="border-l-4 border-l-emerald-500">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-xl mb-3">Architectural Transformation</h4>
+                    <h4 className="font-semibold text-xl mb-3">{t('historyCulture.ottoman.architectural.title')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      The Ottomans introduced new architectural styles: mosques with distinctive minarets, public baths (hammams),
-                      covered markets (bezestans), and the iconic clock tower that still marks the city center. Traditional houses
-                      with wooden upper floors and stone foundations became the standard.
+                      {t('historyCulture.ottoman.architectural.description')}
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="border-l-4 border-l-emerald-500">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-xl mb-3">Cultural Synthesis</h4>
+                    <h4 className="font-semibold text-xl mb-3">{t('historyCulture.ottoman.synthesis.title')}</h4>
                     <p className="text-muted-foreground leading-relaxed">
-                      Despite religious differences, a unique cultural synthesis emerged. Greek Orthodox communities maintained
-                      their traditions while adopting Ottoman customs in dress, cuisine, and social practices. This period
-                      created the distinctive character that defines Trikala today.
+                      {t('historyCulture.ottoman.synthesis.description')}
                     </p>
                   </CardContent>
                 </Card>
@@ -422,29 +380,27 @@ const HistoryCulture: React.FC = () => {
               <div className="space-y-6">
                 <Card className="bg-emerald-50 border-emerald-200">
                   <CardHeader>
-                    <CardTitle className="text-2xl font-serif text-emerald-800">The Clock Tower Story</CardTitle>
+                    <CardTitle className="text-2xl font-serif text-emerald-800">{t('historyCulture.stories.clockTower.title')}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-emerald-700 leading-relaxed mb-4">
-                      Built in 1936 during the late Ottoman period, the clock tower replaced an earlier minaret.
-                      Its construction marked Trikala's modernization efforts, bringing European timekeeping to a traditional society.
+                      {t('historyCulture.stories.clockTower.description1')}
                     </p>
                     <p className="text-emerald-700 leading-relaxed">
-                      The tower's chimes regulated daily life: calling merchants to market, announcing prayer times,
-                      and marking the rhythm of urban existence. Today, it remains the city's most recognizable landmark.
+                      {t('historyCulture.stories.clockTower.description2')}
                     </p>
                   </CardContent>
                 </Card>
 
                 <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200">
                   <CardContent className="p-6">
-                    <h4 className="font-semibold text-lg mb-3 text-emerald-800">Ottoman Heritage Today</h4>
+                    <h4 className="font-semibold text-lg mb-3 text-emerald-800">{t('historyCulture.ottoman.heritage.title')}</h4>
                     <ul className="space-y-2 text-emerald-700">
-                      <li>• Traditional neighborhoods (Varousi, Manavika)</li>
-                      <li>• Stone bridges over the Lithaios River</li>
-                      <li>• Covered market areas and artisan quarters</li>
-                      <li>• Culinary traditions and coffee culture</li>
-                      <li>• Urban layout and street patterns</li>
+                      <li>• {t('historyCulture.ottoman.heritage.neighborhood1')}</li>
+                      <li>• {t('historyCulture.ottoman.heritage.neighborhood2')}</li>
+                      <li>• {t('historyCulture.ottoman.heritage.neighborhood3')}</li>
+                      <li>• {t('historyCulture.ottoman.heritage.neighborhood4')}</li>
+                      <li>• {t('historyCulture.ottoman.heritage.neighborhood5')}</li>
                     </ul>
                   </CardContent>
                 </Card>
@@ -455,43 +411,37 @@ const HistoryCulture: React.FC = () => {
           {/* Modern Period */}
           <div className="mb-12">
             <div className="text-center mb-12">
-              <Badge className="bg-blue-100 text-blue-800 mb-4">Modern Era</Badge>
-              <h3 className="font-serif text-3xl md:text-4xl mb-4">Modern Trikala (1881 - Present)</h3>
+              <Badge className="bg-blue-100 text-blue-800 mb-4">{t('historyCulture.eras.modern')}</Badge>
+              <h3 className="font-serif text-3xl md:text-4xl mb-4">{t('historyCulture.timeline.modern.title')}</h3>
               <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                From liberation to smart city: Trikala's transformation into a model of innovation while preserving its heritage.
+                {t('historyCulture.timeline.modern.description')}
               </p>
             </div>
 
             <div className="grid lg:grid-cols-3 gap-8">
               <Card className="border-l-4 border-l-blue-500">
                 <CardContent className="p-6">
-                  <h4 className="font-semibold text-xl mb-3">Liberation & Growth (1881-1940)</h4>
+                  <h4 className="font-semibold text-xl mb-3">{t('historyCulture.modern.liberation.title')}</h4>
                   <p className="text-muted-foreground leading-relaxed">
-                    After liberation from Ottoman rule, Trikala experienced rapid modernization. New schools, hospitals,
-                    and public buildings were constructed. The arrival of the railway in 1886 connected the city to Athens
-                    and Thessaloniki, spurring economic growth.
+                    {t('historyCulture.modern.liberation.description')}
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="border-l-4 border-l-blue-500">
                 <CardContent className="p-6">
-                  <h4 className="font-semibold text-xl mb-3">Reconstruction Era (1940-1980)</h4>
+                  <h4 className="font-semibold text-xl mb-3">{t('historyCulture.modern.reconstruction.title')}</h4>
                   <p className="text-muted-foreground leading-relaxed">
-                    After the devastation of WWII and the Greek Civil War, Trikala rebuilt itself as a modern provincial capital.
-                    Urban planning preserved the historic center while expanding with contemporary neighborhoods.
-                    The university brought new energy and intellectual life.
+                    {t('historyCulture.modern.reconstruction.description')}
                   </p>
                 </CardContent>
               </Card>
 
               <Card className="border-l-4 border-l-blue-500">
                 <CardContent className="p-6">
-                  <h4 className="font-semibold text-xl mb-3">Smart City Pioneer (1980-Present)</h4>
+                  <h4 className="font-semibold text-xl mb-3">{t('historyCulture.modern.smartCity.title')}</h4>
                   <p className="text-muted-foreground leading-relaxed">
-                    Trikala became Greece's first smart city, implementing innovative technologies while respecting its heritage.
-                    Digital services, sustainable transport, and cultural preservation create a unique model of urban development
-                    that attracts visitors from around the world.
+                    {t('historyCulture.modern.smartCity.description')}
                   </p>
                 </CardContent>
               </Card>
@@ -502,10 +452,9 @@ const HistoryCulture: React.FC = () => {
         {/* Archaeological Discoveries */}
         <section className="max-w-7xl mx-auto mb-24">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">Archaeological Treasures</h2>
+            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">{t('historyCulture.archaeologicalTreasures.title')}</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Recent excavations continue to reveal Trikala's ancient secrets, confirming its importance as a sacred healing center
-              and strategic crossroads of the ancient world.
+              {t('historyCulture.archaeologicalTreasures.description')}
             </p>
           </div>
 
@@ -513,21 +462,19 @@ const HistoryCulture: React.FC = () => {
             <div className="space-y-8">
               <Card className="bg-gradient-to-br from-amber-50 to-orange-50 border-amber-200">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-serif text-amber-800">The Ancient Asclepieion</CardTitle>
+                  <CardTitle className="text-2xl font-serif text-amber-800">{t('historyCulture.discoveries.asclepieion.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-amber-700 leading-relaxed mb-4">
-                    Ongoing excavations near the castle hill have uncovered remains of the ancient Asclepieion,
-                    including foundation stones, ritual pools, and medical instruments. These findings confirm ancient
-                    sources that described Trikka as the birthplace of medical science.
+                    {t('historyCulture.discoveries.asclepieion.description')}
                   </p>
                   <div className="bg-white/50 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2 text-amber-800">Key Discoveries:</h4>
+                    <h4 className="font-semibold mb-2 text-amber-800">{t('historyCulture.discoveries.asclepieion.keyTitle')}</h4>
                     <ul className="text-sm text-amber-700 space-y-1">
-                      <li>• Bronze surgical instruments (3rd century BC)</li>
-                      <li>• Votive offerings depicting healed body parts</li>
-                      <li>• Inscribed tablets with healing prayers</li>
-                      <li>• Sacred spring and purification basins</li>
+                      <li>• {t('historyCulture.discoveries.asclepieion.discovery1')}</li>
+                      <li>• {t('historyCulture.discoveries.asclepieion.discovery2')}</li>
+                      <li>• {t('historyCulture.discoveries.asclepieion.discovery3')}</li>
+                      <li>• {t('historyCulture.discoveries.asclepieion.discovery4')}</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -535,20 +482,19 @@ const HistoryCulture: React.FC = () => {
 
               <Card className="bg-gradient-to-br from-purple-50 to-indigo-50 border-purple-200">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-serif text-purple-800">Byzantine Artifacts</CardTitle>
+                  <CardTitle className="text-2xl font-serif text-purple-800">{t('historyCulture.discoveries.byzantine.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-purple-700 leading-relaxed mb-4">
-                    The castle excavations have revealed a rich collection of Byzantine artifacts, including religious icons,
-                    imperial seals, and everyday objects that illuminate life in medieval Trikala.
+                    {t('historyCulture.discoveries.byzantine.description')}
                   </p>
                   <div className="bg-white/50 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2 text-purple-800">Notable Finds:</h4>
+                    <h4 className="font-semibold mb-2 text-purple-800">{t('historyCulture.discoveries.byzantine.notableTitle')}</h4>
                     <ul className="text-sm text-purple-700 space-y-1">
-                      <li>• 12th-century religious frescoes</li>
-                      <li>• Imperial coins and administrative seals</li>
-                      <li>• Ceramic workshops and kilns</li>
-                      <li>• Defensive wall construction phases</li>
+                      <li>• {t('historyCulture.discoveries.byzantine.find1')}</li>
+                      <li>• {t('historyCulture.discoveries.byzantine.find2')}</li>
+                      <li>• {t('historyCulture.discoveries.byzantine.find3')}</li>
+                      <li>• {t('historyCulture.discoveries.byzantine.find4')}</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -558,21 +504,19 @@ const HistoryCulture: React.FC = () => {
             <div className="space-y-8">
               <Card className="bg-gradient-to-br from-emerald-50 to-teal-50 border-emerald-200">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-serif text-emerald-800">Ottoman Urban Planning</CardTitle>
+                  <CardTitle className="text-2xl font-serif text-emerald-800">{t('historyCulture.discoveries.ottoman.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-emerald-700 leading-relaxed mb-4">
-                    Archaeological surveys of the old town reveal the sophisticated Ottoman urban planning that created
-                    Trikala's distinctive neighborhoods. Water systems, market areas, and residential quarters show
-                    remarkable preservation.
+                    {t('historyCulture.discoveries.ottoman.description')}
                   </p>
                   <div className="bg-white/50 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2 text-emerald-800">Urban Features:</h4>
+                    <h4 className="font-semibold mb-2 text-emerald-800">{t('historyCulture.discoveries.ottoman.featuresTitle')}</h4>
                     <ul className="text-sm text-emerald-700 space-y-1">
-                      <li>• Original stone-paved streets</li>
-                      <li>• Traditional house foundations</li>
-                      <li>• Public fountain systems</li>
-                      <li>• Market and workshop areas</li>
+                      <li>• {t('historyCulture.discoveries.ottoman.feature1')}</li>
+                      <li>• {t('historyCulture.discoveries.ottoman.feature2')}</li>
+                      <li>• {t('historyCulture.discoveries.ottoman.feature3')}</li>
+                      <li>• {t('historyCulture.discoveries.ottoman.feature4')}</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -580,20 +524,19 @@ const HistoryCulture: React.FC = () => {
 
               <Card className="bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200">
                 <CardHeader>
-                  <CardTitle className="text-2xl font-serif text-blue-800">Modern Archaeological Methods</CardTitle>
+                  <CardTitle className="text-2xl font-serif text-blue-800">{t('historyCulture.discoveries.modern.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-blue-700 leading-relaxed mb-4">
-                    Trikala's archaeological program uses cutting-edge technology including ground-penetrating radar,
-                    3D modeling, and digital reconstruction to uncover and preserve its heritage without damaging existing structures.
+                    {t('historyCulture.discoveries.modern.description')}
                   </p>
                   <div className="bg-white/50 p-4 rounded-lg">
-                    <h4 className="font-semibold mb-2 text-blue-800">Current Projects:</h4>
+                    <h4 className="font-semibold mb-2 text-blue-800">{t('historyCulture.discoveries.modern.methodsTitle')}</h4>
                     <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• Digital mapping of underground structures</li>
-                      <li>• Virtual reality historical reconstructions</li>
-                      <li>• Conservation of Byzantine frescoes</li>
-                      <li>• Public archaeology education programs</li>
+                      <li>• {t('historyCulture.discoveries.modern.method1')}</li>
+                      <li>• {t('historyCulture.discoveries.modern.method2')}</li>
+                      <li>• {t('historyCulture.discoveries.modern.method3')}</li>
+                      <li>• {t('historyCulture.discoveries.modern.method4')}</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -603,15 +546,14 @@ const HistoryCulture: React.FC = () => {
 
           <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
             <CardContent className="p-8 text-center">
-              <h3 className="font-serif text-2xl mb-4 text-primary">Explore Archaeological Sites</h3>
+              <h3 className="font-serif text-2xl mb-4 text-primary">{t('historyCulture.archaeology.title')}</h3>
               <p className="text-muted-foreground leading-relaxed mb-6 max-w-2xl mx-auto">
-                Visit the actual archaeological sites around Trikala where these discoveries were made. The Ancient Asclepieion site
-                near the castle and ongoing excavations throughout the old town offer glimpses into 2,300 years of continuous history.
+                {t('historyCulture.archaeology.description')}
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Badge variant="outline" className="text-sm">Asclepieion Site: Daily 8:00-15:00</Badge>
-                <Badge variant="outline" className="text-sm">Castle Area: Free Access</Badge>
-                <Badge variant="outline" className="text-sm">Self-guided exploration</Badge>
+                <Badge variant="outline" className="text-sm">{t('historyCulture.archaeology.asclepieion')}</Badge>
+                <Badge variant="outline" className="text-sm">{t('historyCulture.archaeology.castle')}</Badge>
+                <Badge variant="outline" className="text-sm">{t('historyCulture.archaeology.selfGuided')}</Badge>
               </div>
             </CardContent>
           </Card>
@@ -620,10 +562,9 @@ const HistoryCulture: React.FC = () => {
         {/* Must-see Highlights */}
         <section className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">Essential Cultural Sites</h2>
+            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">{t('historyCulture.highlights.title')}</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Six carefully curated destinations that showcase Trikala's rich heritage. Each site offers a unique window
-              into the city's layered history and vibrant cultural identity.
+              {t('historyCulture.highlights.description')}
             </p>
           </div>
 
@@ -671,10 +612,9 @@ const HistoryCulture: React.FC = () => {
         {/* Half-day Itinerary */}
         <section className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">Perfect Half-Day Journey</h2>
+            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">{t('historyCulture.itinerary.title')}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              A carefully crafted route through Trikala's cultural highlights, designed to maximize your experience
-              while allowing time to savor each moment.
+              {t('historyCulture.itinerary.subtitle')}
             </p>
           </div>
 
@@ -682,9 +622,9 @@ const HistoryCulture: React.FC = () => {
             <CardHeader className="text-center pb-8">
               <div className="flex items-center justify-center gap-2 mb-4">
                 <Calendar className="h-6 w-6 text-accent" />
-                <Badge variant="secondary" className="text-sm font-medium">6-Hour Cultural Tour</Badge>
+                <Badge variant="secondary" className="text-sm font-medium">{t('historyCulture.itinerary.badge')}</Badge>
               </div>
-              <CardTitle className="text-2xl font-serif">Your Cultural Adventure</CardTitle>
+              <CardTitle className="text-2xl font-serif">{t('historyCulture.itinerary.cardTitle')}</CardTitle>
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-6">
@@ -722,10 +662,9 @@ const HistoryCulture: React.FC = () => {
         {/* Cultural Traditions & Their Origins */}
         <section className="max-w-7xl mx-auto mb-24">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">Living Traditions</h2>
+            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">{t('historyCulture.livingTraditions.title')}</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Discover how ancient customs, Byzantine rituals, and Ottoman practices have evolved into the vibrant
-              cultural traditions that define modern Trikala's character and daily life.
+              {t('historyCulture.livingTraditions.description')}
             </p>
           </div>
 
@@ -737,22 +676,20 @@ const HistoryCulture: React.FC = () => {
                     <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
                       <Music className="h-5 w-5 text-amber-600" />
                     </div>
-                    <Badge variant="outline" className="text-xs">Ancient Origins</Badge>
+                    <Badge variant="outline" className="text-xs">{t('historyCulture.traditions.music.badge')}</Badge>
                   </div>
-                  <CardTitle className="text-xl font-serif">Healing Music Tradition</CardTitle>
+                  <CardTitle className="text-xl font-serif">{t('historyCulture.traditions.music.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    The tradition of therapeutic music in Trikala dates back to the ancient Asclepieion, where music was used
-                    as part of healing rituals. Today, this legacy lives on in the city's vibrant music scene and the annual
-                    Tsitsanis Festival celebrating the famous rebetiko composer born here.
+                    {t('historyCulture.traditions.music.description')}
                   </p>
                   <div className="bg-amber-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-2 text-amber-800">Modern Expressions:</h4>
+                    <h4 className="font-semibold text-sm mb-2 text-amber-800">{t('historyCulture.traditions.music.modernTitle')}</h4>
                     <ul className="text-sm text-amber-700 space-y-1">
-                      <li>• Annual Vassilis Tsitsanis Festival (July)</li>
-                      <li>• Traditional music workshops</li>
-                      <li>• Therapeutic music programs in hospitals</li>
+                      <li>• {t('historyCulture.traditions.music.expression1')}</li>
+                      <li>• {t('historyCulture.traditions.music.expression2')}</li>
+                      <li>• {t('historyCulture.traditions.music.expression3')}</li>
                       <li>• Street musicians in historic squares</li>
                     </ul>
                   </div>
@@ -765,23 +702,21 @@ const HistoryCulture: React.FC = () => {
                     <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
                       <Calendar className="h-5 w-5 text-purple-600" />
                     </div>
-                    <Badge variant="outline" className="text-xs">Byzantine Heritage</Badge>
+                    <Badge variant="outline" className="text-xs">{t('historyCulture.traditions.festivals.badge')}</Badge>
                   </div>
-                  <CardTitle className="text-xl font-serif">Religious Festivals</CardTitle>
+                  <CardTitle className="text-xl font-serif">{t('historyCulture.traditions.festivals.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    Byzantine religious traditions continue to shape Trikala's calendar. The Feast of Saint Nicholas (December 6)
-                    and Easter celebrations maintain centuries-old customs, while the famous "Mill of Elves" Christmas park
-                    blends ancient winter solstice traditions with modern family entertainment.
+                    {t('historyCulture.traditions.festivals.detailedDescription')}
                   </p>
                   <div className="bg-purple-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-2 text-purple-800">Major Celebrations:</h4>
+                    <h4 className="font-semibold text-sm mb-2 text-purple-800">{t('historyCulture.traditions.festivals.majorCelebrationsTitle')}</h4>
                     <ul className="text-sm text-purple-700 space-y-1">
-                      <li>• Mill of Elves (December-January)</li>
-                      <li>• Easter processions through old town</li>
-                      <li>• Feast of Saint Nicholas</li>
-                      <li>• Traditional blessing of waters (Epiphany)</li>
+                      <li>• {t('historyCulture.traditions.festivals.millOfElves')}</li>
+                      <li>• {t('historyCulture.traditions.festivals.easterWeek')}</li>
+                      <li>• {t('historyCulture.traditions.festivals.saintNicholas')}</li>
+                      <li>• {t('historyCulture.traditions.festivals.summerFestivals')}</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -795,23 +730,21 @@ const HistoryCulture: React.FC = () => {
                     <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
                       <Coffee className="h-5 w-5 text-emerald-600" />
                     </div>
-                    <Badge variant="outline" className="text-xs">Ottoman Legacy</Badge>
+                    <Badge variant="outline" className="text-xs">{t('historyCulture.traditions.coffee.badge')}</Badge>
                   </div>
-                  <CardTitle className="text-xl font-serif">Coffee Culture</CardTitle>
+                  <CardTitle className="text-xl font-serif">{t('historyCulture.traditions.coffee.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    The Ottoman introduction of coffee created a social institution that remains central to Trikala life.
-                    Traditional kafeneia (coffee houses) serve as community centers where locals gather to discuss politics,
-                    play backgammon, and maintain social bonds across generations.
+                    {t('historyCulture.traditions.coffee.detailedDescription')}
                   </p>
                   <div className="bg-emerald-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-2 text-emerald-800">Coffee Traditions:</h4>
+                    <h4 className="font-semibold text-sm mb-2 text-emerald-800">{t('historyCulture.traditions.coffee.coffeeTraditonsTitle')}</h4>
                     <ul className="text-sm text-emerald-700 space-y-1">
-                      <li>• Traditional Greek coffee preparation</li>
-                      <li>• Kafeneio social gatherings</li>
-                      <li>• Riverside café terraces</li>
-                      <li>• Coffee fortune telling (tasseography)</li>
+                      <li>• {t('historyCulture.traditions.coffee.greekCoffee')}</li>
+                      <li>• {t('historyCulture.traditions.coffee.newspaperReading')}</li>
+                      <li>• {t('historyCulture.traditions.coffee.backgammon')}</li>
+                      <li>• {t('historyCulture.traditions.coffee.politicalDiscussions')}</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -823,23 +756,21 @@ const HistoryCulture: React.FC = () => {
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                       <ShoppingBag className="h-5 w-5 text-blue-600" />
                     </div>
-                    <Badge variant="outline" className="text-xs">Multicultural Synthesis</Badge>
+                    <Badge variant="outline" className="text-xs">{t('historyCulture.traditions.crafts.badge')}</Badge>
                   </div>
-                  <CardTitle className="text-xl font-serif">Artisan Crafts</CardTitle>
+                  <CardTitle className="text-xl font-serif">{t('historyCulture.traditions.crafts.title')}</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <p className="text-muted-foreground leading-relaxed mb-4">
-                    Trikala's craft traditions blend influences from all historical periods. Local artisans create pottery
-                    using Byzantine techniques, metalwork reflecting Ottoman styles, and textiles incorporating ancient Greek patterns.
-                    These crafts are sold in workshops throughout the old town.
+                    {t('historyCulture.traditions.crafts.detailedDescription')}
                   </p>
                   <div className="bg-blue-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-sm mb-2 text-blue-800">Traditional Crafts:</h4>
+                    <h4 className="font-semibold text-sm mb-2 text-blue-800">{t('historyCulture.traditions.crafts.traditionalCraftsTitle')}</h4>
                     <ul className="text-sm text-blue-700 space-y-1">
-                      <li>• Hand-thrown ceramics and pottery</li>
-                      <li>• Traditional metalwork and jewelry</li>
-                      <li>• Woven textiles and embroidery</li>
-                      <li>• Woodcarving and furniture making</li>
+                      <li>• {t('historyCulture.traditions.crafts.ceramics')}</li>
+                      <li>• {t('historyCulture.traditions.crafts.textiles')}</li>
+                      <li>• {t('historyCulture.traditions.crafts.metalwork')}</li>
+                      <li>• {t('historyCulture.traditions.crafts.woodwork')}</li>
                     </ul>
                   </div>
                 </CardContent>
@@ -850,10 +781,9 @@ const HistoryCulture: React.FC = () => {
           <Card className="bg-gradient-to-r from-primary/5 to-accent/5 border-primary/20">
             <CardContent className="p-8">
               <div className="text-center mb-6">
-                <h3 className="font-serif text-2xl mb-4 text-primary">Experience Living History</h3>
+                <h3 className="font-serif text-2xl mb-4 text-primary">{t('historyCulture.experience.title')}</h3>
                 <p className="text-muted-foreground leading-relaxed max-w-2xl mx-auto">
-                  Join locals in their daily traditions. Visit a traditional kafeneio, attend a religious festival,
-                  or learn from master craftsmen who maintain skills passed down through generations.
+                  {t('historyCulture.experience.description')}
                 </p>
               </div>
               <div className="grid md:grid-cols-3 gap-6">
@@ -861,22 +791,22 @@ const HistoryCulture: React.FC = () => {
                   <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Coffee className="h-6 w-6 text-accent" />
                   </div>
-                  <h4 className="font-semibold mb-2">Morning Coffee Ritual</h4>
-                  <p className="text-sm text-muted-foreground">Start your day like a local at a traditional kafeneio</p>
+                  <h4 className="font-semibold mb-2">{t('historyCulture.experienceActivities.morning.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('historyCulture.experienceActivities.morning.description')}</p>
                 </div>
                 <div className="text-center">
                   <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-3">
                     <Music className="h-6 w-6 text-accent" />
                   </div>
-                  <h4 className="font-semibold mb-2">Evening Entertainment</h4>
-                  <p className="text-sm text-muted-foreground">Enjoy traditional music in historic courtyards</p>
+                  <h4 className="font-semibold mb-2">{t('historyCulture.experienceActivities.evening.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('historyCulture.experienceActivities.evening.description')}</p>
                 </div>
                 <div className="text-center">
                   <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-3">
                     <ShoppingBag className="h-6 w-6 text-accent" />
                   </div>
-                  <h4 className="font-semibold mb-2">Artisan Workshops</h4>
-                  <p className="text-sm text-muted-foreground">Watch master craftsmen at work in their studios</p>
+                  <h4 className="font-semibold mb-2">{t('historyCulture.experienceActivities.workshops.title')}</h4>
+                  <p className="text-sm text-muted-foreground">{t('historyCulture.experienceActivities.workshops.description')}</p>
                 </div>
               </div>
             </CardContent>
@@ -886,10 +816,9 @@ const HistoryCulture: React.FC = () => {
         {/* Culture Now */}
         <section className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">Contemporary Cultural Scene</h2>
+            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">{t('historyCulture.contemporary.title')}</h2>
             <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
-              Modern Trikala honors its heritage while embracing innovation. Discover how the city's cultural institutions
-              and creative community continue to write new chapters in its long story.
+              {t('historyCulture.contemporary.description')}
             </p>
           </div>
 
@@ -899,13 +828,11 @@ const HistoryCulture: React.FC = () => {
                 <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
                   <Music className="h-8 w-8 text-accent" />
                 </div>
-                <CardTitle className="text-2xl font-serif">Cultural Venues</CardTitle>
+                <CardTitle className="text-2xl font-serif">{t('historyCulture.venues.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  The Municipal Theater, Cultural Center, and outdoor amphitheaters host year-round performances.
-                  From classical concerts in Byzantine courtyards to contemporary art exhibitions, Trikala's cultural
-                  calendar offers something for every taste.
+                  {t('historyCulture.venues.description')}
                 </p>
               </CardContent>
             </Card>
@@ -915,13 +842,11 @@ const HistoryCulture: React.FC = () => {
                 <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
                   <Building className="h-8 w-8 text-accent" />
                 </div>
-                <CardTitle className="text-2xl font-serif">Smart Heritage</CardTitle>
+                <CardTitle className="text-2xl font-serif">{t('historyCulture.smart.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  As Greece's first smart city, Trikala uses technology to enhance cultural experiences.
-                  QR codes at historical sites provide multilingual information, while virtual reality tours
-                  bring ancient Trikka to life for modern visitors.
+                  {t('historyCulture.smart.description')}
                 </p>
               </CardContent>
             </Card>
@@ -931,13 +856,11 @@ const HistoryCulture: React.FC = () => {
                 <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
                   <Users className="h-8 w-8 text-accent" />
                 </div>
-                <CardTitle className="text-2xl font-serif">Community Spirit</CardTitle>
+                <CardTitle className="text-2xl font-serif">{t('historyCulture.community.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed">
-                  Local cultural associations, volunteer groups, and neighborhood committees maintain Trikala's
-                  strong sense of community. Festivals, markets, and celebrations bring residents together,
-                  preserving the social bonds that have sustained the city for millennia.
+                  {t('historyCulture.community.description')}
                 </p>
               </CardContent>
             </Card>
@@ -947,10 +870,9 @@ const HistoryCulture: React.FC = () => {
         {/* Practical Tips */}
         <section className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">Essential Travel Tips</h2>
+            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">{t('historyCulture.tips.title')}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Make the most of your cultural exploration with these insider recommendations for timing,
-              preparation, and capturing memories.
+              {t('historyCulture.tips.description')}
             </p>
           </div>
 
@@ -960,15 +882,14 @@ const HistoryCulture: React.FC = () => {
                 <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
                   <Calendar className="h-6 w-6 text-accent" />
                 </div>
-                <CardTitle className="text-xl font-serif">Best Time to Visit</CardTitle>
+                <CardTitle className="text-xl font-serif">{t('historyCulture.tips.timing.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Spring through autumn offers ideal weather for exploring. December brings magical holiday events
-                  and festive atmosphere to the historic sites.
+                  {t('historyCulture.tips.timing.description')}
                 </p>
                 <Badge variant="outline" className="text-xs">
-                  Peak Season: May-September
+                  {t('historyCulture.tips.timing.badge')}
                 </Badge>
               </CardContent>
             </Card>
@@ -978,15 +899,14 @@ const HistoryCulture: React.FC = () => {
                 <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
                   <Users className="h-6 w-6 text-accent" />
                 </div>
-                <CardTitle className="text-xl font-serif">What to Wear</CardTitle>
+                <CardTitle className="text-xl font-serif">{t('historyCulture.tips.clothing.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Comfortable walking shoes are essential for cobblestone streets and castle paths.
-                  Layers work best for changing temperatures throughout the day.
+                  {t('historyCulture.tips.clothing.description')}
                 </p>
                 <Badge variant="outline" className="text-xs">
-                  Comfortable & Practical
+                  {t('historyCulture.tips.clothing.badge')}
                 </Badge>
               </CardContent>
             </Card>
@@ -996,91 +916,45 @@ const HistoryCulture: React.FC = () => {
                 <div className="w-12 h-12 bg-accent/10 rounded-full flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
                   <Camera className="h-6 w-6 text-accent" />
                 </div>
-                <CardTitle className="text-xl font-serif">Photography Tips</CardTitle>
+                <CardTitle className="text-xl font-serif">{t('historyCulture.tips.photography.title')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground leading-relaxed mb-4">
-                  Golden hour from the castle offers stunning panoramic shots. Early morning riverside light
-                  creates beautiful reflections and soft shadows.
+                  {t('historyCulture.tips.photography.description')}
                 </p>
                 <Badge variant="outline" className="text-xs">
-                  Best Light: Dawn & Dusk
+                  {t('historyCulture.tips.photography.badge')}
                 </Badge>
               </CardContent>
             </Card>
           </div>
         </section>
 
-        {/* FAQ Section */}
+        {/* More Questions Section */}
         <section className="max-w-4xl mx-auto">
-          <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">Common Questions</h2>
-            <p className="text-lg text-muted-foreground">
-              Everything you need to know for a seamless cultural exploration of Trikala.
-            </p>
-          </div>
-
-          <div className="space-y-6">
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Info className="h-4 w-4 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-xl mb-3">Is everything walkable?</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Absolutely. All major cultural highlights are within a comfortable walking radius from the city center.
-                      The compact layout makes it easy to explore multiple sites in a single day without transportation.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Clock className="h-4 w-4 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-xl mb-3">How much time should I plan?</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      One full day allows you to experience all the core cultural sites at a relaxed pace.
-                      If you're planning to visit nearby Meteora, consider adding an additional day to your itinerary.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg hover:shadow-xl transition-shadow">
-              <CardContent className="p-8">
-                <div className="flex items-start gap-4">
-                  <div className="w-8 h-8 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                    <Users className="h-4 w-4 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-xl mb-3">Are guided tours available?</h3>
-                    <p className="text-muted-foreground leading-relaxed">
-                      Yes, we can connect you with trusted local guides who offer personalized tours and insider knowledge.
-                      Contact us for recommendations and custom route planning based on your interests.
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <Card className="border-2 border-primary/20 bg-primary/5 text-center">
+            <CardContent className="p-8">
+              <HelpCircle className="h-12 w-12 text-primary mx-auto mb-4" />
+              <h3 className="text-xl font-semibold mb-2">More Questions About Your Stay?</h3>
+              <p className="text-muted-foreground mb-6">
+                Visit our comprehensive FAQ page for answers to questions about booking, 
+                check-in, amenities, and all your travel needs in Trikala.
+              </p>
+              <Button asChild size="lg">
+                <Link to="/faq">
+                  View All FAQs
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
         </section>
 
         {/* Map Section */}
         <section id="map" className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">Interactive Cultural Map</h2>
+            <h2 className="font-serif text-4xl md:text-5xl mb-4 text-primary">{t('historyCulture.map.title')}</h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Navigate Trikala's cultural landscape with our detailed map featuring all major historical sites,
-              museums, and points of interest.
+              {t('historyCulture.map.description')}
             </p>
           </div>
 
@@ -1104,7 +978,7 @@ const HistoryCulture: React.FC = () => {
                   ))}
                 </div>
                 <p className="text-center text-muted-foreground">
-                  All cultural highlights are within a pleasant 15-minute walk from Habitat Lobby.
+                  {t('historyCulture.map.walkingNote')}
                 </p>
               </div>
             </CardContent>
@@ -1114,9 +988,9 @@ const HistoryCulture: React.FC = () => {
         {/* Related Pages Section */}
         <section className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="font-serif text-3xl md:text-4xl mb-4 text-primary">Explore More of Trikala</h2>
+            <h2 className="font-serif text-3xl md:text-4xl mb-4 text-primary">{t('historyCulture.relatedPages.title')}</h2>
             <p className="text-lg text-muted-foreground">
-              Discover all that Trikala has to offer with our comprehensive guides.
+              {t('historyCulture.relatedPages.description')}
             </p>
           </div>
 
@@ -1127,16 +1001,16 @@ const HistoryCulture: React.FC = () => {
                   <Trees className="h-6 w-6 text-green-600" />
                 </div>
                 <CardTitle className="text-2xl font-serif group-hover:text-green-600 transition-colors">
-                  Nature & Day Trips
+                  {t('historyCulture.relatedPages.nature.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  Discover riverside walks, lush parks, and world-famous Meteora just an hour away from Trikala.
+                  {t('historyCulture.relatedPages.nature.description')}
                 </p>
                 <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white">
                   <Link to="/about-trikala/nature-day-trips" className="flex items-center justify-center gap-2">
-                    Explore Nature
+                    {t('historyCulture.relatedPages.nature.button')}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -1149,16 +1023,16 @@ const HistoryCulture: React.FC = () => {
                   <Coffee className="h-6 w-6 text-blue-600" />
                 </div>
                 <CardTitle className="text-2xl font-serif group-hover:text-blue-600 transition-colors">
-                  Local Life
+                  {t('historyCulture.relatedPages.localLife.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  Experience the cafés, markets, and friendly pace of everyday life in Trikala.
+                  {t('historyCulture.relatedPages.localLife.description')}
                 </p>
                 <Button asChild className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                   <Link to="/about-trikala/local-life" className="flex items-center justify-center gap-2">
-                    Discover Local Life
+                    {t('historyCulture.relatedPages.localLife.button')}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -1171,16 +1045,16 @@ const HistoryCulture: React.FC = () => {
                   <Star className="h-6 w-6 text-purple-600" />
                 </div>
                 <CardTitle className="text-2xl font-serif group-hover:text-purple-600 transition-colors">
-                  Experiences
+                  {t('historyCulture.relatedPages.experiences.title')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <p className="text-muted-foreground leading-relaxed mb-6">
-                  Curated activities and local experiences to make the most of your stay in Trikala.
+                  {t('historyCulture.relatedPages.experiences.description')}
                 </p>
                 <Button asChild variant="outline" className="w-full group-hover:bg-purple-600 group-hover:text-white transition-colors">
                   <Link to="/experiences" className="flex items-center justify-center gap-2">
-                    View Experiences
+                    {t('historyCulture.relatedPages.experiences.button')}
                     <ArrowRight className="h-4 w-4" />
                   </Link>
                 </Button>
@@ -1197,23 +1071,22 @@ const HistoryCulture: React.FC = () => {
           <div className="space-y-8">
             <div>
               <h2 className="font-serif text-4xl md:text-6xl mb-6 leading-tight">
-                Stay Close to Trikala's Cultural Heart
+                {t('historyCulture.cta.title')}
               </h2>
               <p className="text-xl md:text-2xl mb-4 opacity-95 font-light">
-                Experience history at your doorstep
+                {t('historyCulture.cta.subtitle')}
               </p>
               <p className="text-lg opacity-90 max-w-2xl mx-auto leading-relaxed">
-                Book directly with Habitat Lobby for the best rates, personalized recommendations,
-                and insider access to Trikala's hidden cultural gems.
+                {t('historyCulture.cta.description')}
               </p>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-6 justify-center pt-4">
               <Button asChild size="lg" variant="secondary" className="bg-white text-primary hover:bg-gray-100 font-medium px-8 py-4 text-lg">
-                <Link to="/apartments">Explore Our Apartments</Link>
+                <Link to="/apartments">{t('historyCulture.cta.button1')}</Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="border-white/50 text-white hover:bg-white hover:text-primary font-medium px-8 py-4 text-lg backdrop-blur-sm">
-                <Link to="/contact">Get Cultural Recommendations</Link>
+                <Link to="/contact">{t('historyCulture.cta.button2')}</Link>
               </Button>
             </div>
 
@@ -1226,7 +1099,6 @@ const HistoryCulture: React.FC = () => {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 };

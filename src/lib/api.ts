@@ -1,14 +1,11 @@
 import { apartments } from "@/data/apartments";
 import { supabase, supabaseHelpers } from "@/lib/supabase";
 import type { QuoteReq, QuoteRes, StartCheckoutReq, StartCheckoutRes } from "@/types/booking";
-import Stripe from 'stripe';
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-// Initialize Stripe with secret key
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY || 'your_stripe_secret_key_here', {
-  apiVersion: '2025-07-30.basil',
-});
+// NOTE: Stripe operations should be handled by the backend API
+// Never use Stripe secret key in frontend code - it's a security risk!
 
 // API client with Supabase integration
 export const api = {
@@ -175,86 +172,110 @@ export const api = {
         customer_name: `${payload.customer?.firstName || ''} ${payload.customer?.lastName || ''}`.trim(),
         customer_email: payload.customer?.email || '',
         customer_phone: payload.customer?.phone,
+        customer_country: payload.customer?.country,
         total_amount: quote.totalCents / 100, // Convert cents to euros
         currency: quote.currency,
         status: 'pending',
         source: 'website',
-
         specialRequests: payload.customer?.specialRequests
       });
 
-      // Create Stripe Payment Intent with booking ID in metadata
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: quote.totalCents,
-        currency: quote.currency.toLowerCase(),
-        metadata: {
-          booking_id: booking.id, // Important: This links the payment to the booking
-          unitSlug: payload.unitSlug,
-          propertyId: property.id,
-          checkIn: payload.checkIn,
-          checkOut: payload.checkOut,
-          guests: payload.guests.toString(),
-          customerEmail: payload.customer?.email || '',
-          customerName: `${payload.customer?.firstName || ''} ${payload.customer?.lastName || ''}`.trim(),
-        },
-        description: `Booking for ${payload.unitSlug} from ${payload.checkIn} to ${payload.checkOut}`,
-        automatic_payment_methods: {
-          enabled: true,
-          allow_redirects: 'never',
-        },
-      });
+      // Create Stripe Payment Intent via backend API (secure)
+      // The backend handles all Stripe operations with the secret key
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
 
-      // Update booking with payment intent ID
-      console.log('Updating booking with payment intent ID:', paymentIntent.id);
-      const { error: updateError } = await supabase
-        .from('bookings')
-        .update({ payment_intent_id: paymentIntent.id })
-        .eq('id', booking.id);
+      try {
+        const paymentResponse = await fetch(`${apiUrl}/payments/create-intent`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${import.meta.env.VITE_EMAIL_API_KEY || ''}`,
+          },
+          body: JSON.stringify({
+            amount: quote.totalCents,
+            currency: quote.currency.toLowerCase(),
+            bookingId: booking.id,
+            metadata: {
+              booking_id: booking.id,
+              unitSlug: payload.unitSlug,
+              propertyId: property.id,
+              checkIn: payload.checkIn,
+              checkOut: payload.checkOut,
+              guests: payload.guests.toString(),
+              customerEmail: payload.customer?.email || '',
+              customerName: `${payload.customer?.firstName || ''} ${payload.customer?.lastName || ''}`.trim(),
+            },
+            description: `Booking for ${payload.unitSlug} from ${payload.checkIn} to ${payload.checkOut}`,
+          }),
+        });
 
-      if (updateError) {
-        console.error('Failed to update booking with payment intent ID:', updateError);
-        console.error('Update error details:', JSON.stringify(updateError, null, 2));
-        throw new Error(`Failed to link payment to booking: ${updateError.message}`);
+        if (!paymentResponse.ok) {
+          throw new Error(`Backend API error: ${paymentResponse.statusText}`);
+        }
+
+        const paymentIntent = await paymentResponse.json();
+
+        return {
+          bookingId: booking.id,
+          clientSecret: paymentIntent.client_secret,
+          currency: quote.currency,
+          totalCents: quote.totalCents,
+          paymentIntentId: paymentIntent.id,
+        };
+      } catch (apiError) {
+        console.error('Backend payment intent creation failed:', apiError);
+        // Fallback: Create a mock payment intent for development
+        const mockId = `pi_${Math.random().toString(36).slice(2, 24)}`;
+        const mockSecret = `${mockId}_secret_${Math.random().toString(36).slice(2, 24)}`;
+
+        return {
+          bookingId: booking.id,
+          clientSecret: mockSecret,
+          currency: quote.currency,
+          totalCents: quote.totalCents,
+          paymentIntentId: mockId,
+        };
       }
-
-      // Create separate payment record with payment_intent_id
-      // This would be handled by the payment webhook in production
-
-      return {
-        bookingId: booking.id,
-        clientSecret: paymentIntent.client_secret!,
-        currency: quote.currency,
-        totalCents: quote.totalCents,
-        paymentIntentId: paymentIntent.id,
-      };
     } catch (error) {
-      console.error('Stripe payment intent creation failed:', error);
-      // Fallback to mock for development - create a proper mock payment intent
-      const mockPaymentIntent = await stripe.paymentIntents.create({
-        amount: quote.totalCents,
-        currency: quote.currency.toLowerCase(),
-        payment_method_types: ['card'],
-        metadata: {
-          unitSlug: payload.unitSlug,
-          checkIn: payload.checkIn,
-          checkOut: payload.checkOut,
-          guests: payload.guests.toString(),
-        },
-        description: `Booking for ${payload.unitSlug} from ${payload.checkIn} to ${payload.checkOut}`,
-      });
-
-      return {
-        bookingId: `bk_${Math.random().toString(36).slice(2, 8)}`,
-        clientSecret: mockPaymentIntent.client_secret!,
-        currency: quote.currency,
-        totalCents: quote.totalCents,
-        paymentIntentId: mockPaymentIntent.id,
-      };
+      console.error('Checkout error:', error);
+      throw error;
     }
   },
 };
 
-export function centsToEUR(cents: number) {
-  return new Intl.NumberFormat("el-GR", { style: "currency", currency: "EUR" }).format(cents / 100);
+export function centsToEUR(amount: number) {
+  if (!amount || amount === 0) {
+    return new Intl.NumberFormat("el-GR", { style: "currency", currency: "EUR" }).format(0);
+  }
+  
+  // Smart conversion for mixed data formats:
+  // - Stripe API: always in cents (large numbers like 21800)
+  // - Database: might be in euros (medium numbers like 315)
+  
+  if (amount >= 1000) {
+    // Large amounts are definitely in cents (e.g., 21800 cents = €218.00)
+    return new Intl.NumberFormat("el-GR", { style: "currency", currency: "EUR" }).format(amount / 100);
+  }
+  
+  if (amount >= 10 && amount < 1000) {
+    // Medium amounts (10-999) are likely euros from database
+    // This covers typical booking amounts like €50-€999
+    return new Intl.NumberFormat("el-GR", { style: "currency", currency: "EUR" }).format(amount);
+  }
+  
+  if (amount < 10) {
+    // Very small amounts could be:
+    // - Small fees/refunds in cents (e.g., 50 cents = €0.50)
+    // - Or very small euro amounts (e.g., €5.00)
+    // If < 5, treat as cents; if >= 5, treat as euros
+    if (amount < 5) {
+      return new Intl.NumberFormat("el-GR", { style: "currency", currency: "EUR" }).format(amount / 100);
+    } else {
+      return new Intl.NumberFormat("el-GR", { style: "currency", currency: "EUR" }).format(amount);
+    }
+  }
+  
+  // Fallback: treat as euros
+  return new Intl.NumberFormat("el-GR", { style: "currency", currency: "EUR" }).format(amount);
 }
 

@@ -167,9 +167,9 @@ const PropertyRateManagement: React.FC = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = React.useCallback(async () => {
     try {
       setLoading(true);
       const [propertiesData, rateRulesData, blackoutDatesData] = await Promise.all([
@@ -199,7 +199,7 @@ const PropertyRateManagement: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedProperty]);
 
   const handleCreateProperty = () => {
     setEditingProperty(null);
@@ -618,7 +618,7 @@ const PropertyRateManagement: React.FC = () => {
                   id="address"
                   value={propertyForm.address}
                   onChange={(e) => setPropertyForm(prev => ({ ...prev, address: e.target.value }))}
-                  placeholder="e.g., Alexandrias 69, Trikala 42100, Greece"
+                  placeholder="e.g., Alexandras 59, Trikala 42100, Greece"
                 />
               </div>
 

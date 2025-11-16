@@ -1,5 +1,6 @@
 import React from 'react';
 import { Helmet } from 'react-helmet-async';
+import { createOrganizationSchema, createAccommodationSchema, createLocalBusinessSchema } from '@/utils/seoSchemas';
 
 interface SEOProps {
   title: string;
@@ -28,7 +29,7 @@ const SEO: React.FC<SEOProps> = ({
   noindex = false,
   structuredData
 }) => {
-  const siteUrl = import.meta.env.VITE_SITE_URL || 'https://habitat-lobby.lovable.app';
+  const siteUrl = import.meta.env.VITE_SITE_URL || 'https://habitat-lobby.com';
   const fullCanonical = canonical ? `${siteUrl}${canonical}` : undefined;
   const fullOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
   
@@ -37,13 +38,21 @@ const SEO: React.FC<SEOProps> = ({
     'Habitat Lobby',
     'Trikala accommodation',
     'Greece apartments',
-    'boutique apartments',
+    'premium apartments',
     'Trikala hotels',
     'Central Greece',
     'Thessaly accommodation',
     'cycling city Greece',
     'Meteora base',
-    'authentic Greek experience'
+    'authentic Greek experience',
+    'luxury apartments Greece',
+    'premium hotels Trikala',
+    'direct booking Greece',
+    'Meteora accommodation',
+    'Thessaly premium hotels',
+    'Greece vacation rentals',
+    'Trikala city center hotels',
+    'bike-friendly accommodation Greece'
   ];
   
   const allKeywords = [...defaultKeywords, ...keywords].join(', ');
@@ -97,10 +106,9 @@ const SEO: React.FC<SEOProps> = ({
       <meta name="ICBM" content="39.5551, 21.7665" />
       
       {/* Business Information */}
-      <meta name="contact" content="info@habitatlobby.com" />
-      <meta name="coverage" content="Worldwide" />
-      <meta name="distribution" content="Global" />
-      <meta name="rating" content="General" />
+              <meta name="contact" content="admin@habitatlobby.com" />
+        <meta name="telephone" content="+30 697 769 0685" />
+              <meta name="address" content="Alexandras 59, Trikala 42100, Greece" />
       
       {/* Structured Data */}
       {structuredData && (
@@ -113,114 +121,3 @@ const SEO: React.FC<SEOProps> = ({
 };
 
 export default SEO;
-
-// Predefined structured data schemas
-export const createOrganizationSchema = () => ({
-  "@context": "https://schema.org",
-  "@type": "Organization",
-  "name": "Habitat Lobby",
-  "description": "Boutique apartments in Trikala, Greece offering authentic local experiences",
-  "url": "https://habitat-lobby.lovable.app",
-  "logo": "https://habitat-lobby.lovable.app/logo.png",
-  "contactPoint": {
-    "@type": "ContactPoint",
-    "telephone": "+30-243-123-4567",
-    "contactType": "customer service",
-    "email": "info@habitatlobby.com",
-    "availableLanguage": ["English", "Greek"]
-  },
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "Alexandrias 69",
-    "addressLocality": "Trikala",
-    "addressCountry": "GR",
-    "postalCode": "42100"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 39.5551,
-    "longitude": 21.7665
-  },
-  "sameAs": [
-    "https://www.instagram.com/habitatlobby",
-    "https://www.facebook.com/habitatlobby"
-  ]
-});
-
-export const createAccommodationSchema = (apartment: any) => ({
-  "@context": "https://schema.org",
-  "@type": "Accommodation",
-  "name": apartment.name,
-  "description": apartment.description,
-  "url": `https://habitat-lobby.lovable.app/apartments/${apartment.slug}`,
-  "image": apartment.images?.[0],
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "Alexandrias 69",
-    "addressLocality": "Trikala",
-    "addressCountry": "GR",
-    "postalCode": "42100"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 39.5551,
-    "longitude": 21.7665
-  },
-  "amenityFeature": apartment.amenities?.map((amenity: string) => ({
-    "@type": "LocationFeatureSpecification",
-    "name": amenity
-  })),
-  "numberOfRooms": apartment.bedrooms,
-  "occupancy": {
-    "@type": "QuantitativeValue",
-    "maxValue": apartment.maxGuests
-  },
-  "priceRange": `€${apartment.basePrice} - €${apartment.basePrice * 1.5}`,
-  "currenciesAccepted": "EUR",
-  "paymentAccepted": "Credit Card, Debit Card"
-});
-
-export const createLocalBusinessSchema = () => ({
-  "@context": "https://schema.org",
-  "@type": "LodgingBusiness",
-  "name": "Habitat Lobby",
-  "description": "Boutique apartments in Trikala, Greece's cycling capital",
-  "url": "https://habitat-lobby.lovable.app",
-  "telephone": "+30-243-123-4567",
-  "email": "info@habitatlobby.com",
-  "address": {
-    "@type": "PostalAddress",
-    "streetAddress": "Alexandrias 69",
-    "addressLocality": "Trikala",
-    "addressRegion": "Thessaly",
-    "postalCode": "42100",
-    "addressCountry": "GR"
-  },
-  "geo": {
-    "@type": "GeoCoordinates",
-    "latitude": 39.5551,
-    "longitude": 21.7665
-  },
-  "openingHours": "Mo-Su 00:00-24:00",
-  "priceRange": "€€",
-  "servesCuisine": "Greek",
-  "acceptsReservations": true,
-  "amenityFeature": [
-    {
-      "@type": "LocationFeatureSpecification",
-      "name": "Free WiFi"
-    },
-    {
-      "@type": "LocationFeatureSpecification", 
-      "name": "Air Conditioning"
-    },
-    {
-      "@type": "LocationFeatureSpecification",
-      "name": "Kitchen"
-    },
-    {
-      "@type": "LocationFeatureSpecification",
-      "name": "Bike Storage"
-    }
-  ]
-});

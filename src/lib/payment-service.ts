@@ -1,14 +1,8 @@
-import Stripe from 'stripe';
 import { supabaseHelpers } from './supabase';
 
-// Note: This service should typically run on the server-side
-// For demo purposes, we'll use a placeholder or mock implementation
-const STRIPE_SECRET_KEY = import.meta.env.VITE_STRIPE_SECRET_KEY || 'sk_test_placeholder';
-
-// Initialize Stripe (this would typically be done server-side)
-const stripe = typeof window === 'undefined'
-  ? new Stripe(STRIPE_SECRET_KEY, { apiVersion: '2025-07-30.basil' })
-  : null; // Don't initialize Stripe on client-side with secret key
+// NOTE: This service should run on the server-side only
+// Stripe operations with secret keys must NEVER be in frontend code
+// Use the backend API instead for all payment operations
 
 export interface RefundRequest {
   paymentId: string;
@@ -19,7 +13,7 @@ export interface RefundRequest {
 
 export interface RefundResult {
   success: boolean;
-  refund?: Stripe.Refund;
+  refund?: Record<string, unknown>;
   error?: string;
 }
 
@@ -44,19 +38,9 @@ export class PaymentService {
         return { success: false, error: 'No Stripe payment intent found' };
       }
 
-      // Create refund in Stripe
-      const refundParams: Stripe.RefundCreateParams = {
-        payment_intent: payment.stripe_payment_intent_id,
-        reason: this.mapRefundReason(request.reason),
-        metadata: request.metadata || {}
-      };
-
-      // Add amount for partial refunds
-      if (request.amount && request.amount < payment.amount) {
-        refundParams.amount = Math.round(request.amount * 100); // Convert to cents
-      }
-
-      const refund = await stripe.refunds.create(refundParams);
+      // NOTE: Refund processing should be done via backend API
+      // This is a placeholder - actual implementation must be on server-side
+      throw new Error('Refund processing must be done via backend API, not frontend');
 
       // Update payment record in database
       await this.updatePaymentAfterRefund(payment.id, refund, request.reason);
@@ -73,7 +57,13 @@ export class PaymentService {
   }
 
   // Get payment details by ID
-  private async getPaymentById(paymentId: string): Promise<any> {
+  private async getPaymentById(paymentId: string): Promise<{
+    id: string;
+    stripe_payment_intent_id: string;
+    amount: number;
+    currency: string;
+    status: string;
+  } | null> {
     try {
       // This would need to be implemented in supabaseHelpers
       // For now, return a mock payment
@@ -92,8 +82,8 @@ export class PaymentService {
 
   // Update payment record after refund
   private async updatePaymentAfterRefund(
-    paymentId: string, 
-    refund: Stripe.Refund, 
+    paymentId: string,
+    refund: Record<string, unknown>,
     reason?: string
   ): Promise<void> {
     try {

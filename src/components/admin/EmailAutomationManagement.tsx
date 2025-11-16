@@ -1,7 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabaseHelpers } from '@/lib/supabase';
-import { emailService } from '@/lib/email-service';
-import { emailTemplateService, EmailTemplate as RealEmailTemplate } from '@/services/EmailTemplateService';
+import { toast } from '@/utils/toastUtils';
+
+import { emailTemplateService, EmailTemplate as RealEmailTemplate, EmailLog as ServiceEmailLog } from '@/services/EmailTemplateService';
+import { emailAutomationService } from '@/services/EmailAutomationService';
+import { EmailTemplateEditor } from './EmailTemplateEditor';
+import { EmailTemplateLibrary } from './EmailTemplateLibrary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +20,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { 
   Mail, 
-  Send, 
+
   Clock, 
   Settings, 
   Plus, 
@@ -33,88 +37,56 @@ import {
   XCircle,
   AlertCircle,
   Copy,
-  Download
+  Download,
+  Palette,
+
 } from 'lucide-react';
 
-// Use the real EmailTemplate interface from the service
+// Use the real interfaces from the services
 type EmailTemplate = RealEmailTemplate;
+type EmailAutomation = import('@/services/EmailAutomationService').EmailAutomation;
 
-interface EmailAutomation {
-  id: string;
-  name: string;
-  template_id: string;
-  trigger_type: 'booking_created' | 'check_in_approaching' | 'id_missing' | 'check_out_completed';
-  trigger_delay: number; // hours
-  is_active: boolean;
-  conditions?: {
-    booking_status?: string[];
-    property_ids?: string[];
-  };
-  created_at: string;
-}
-
-interface EmailLog {
-  id: string;
-  template_id: string;
-  template_name: string;
-  recipient_email: string;
-  recipient_name: string;
-  subject: string;
-  status: 'sent' | 'failed' | 'pending' | 'scheduled';
-  sent_at?: string;
-  scheduled_for?: string;
-  error_message?: string;
-  booking_id?: string;
-}
+// Use the EmailLog interface from the service
+type EmailLog = ServiceEmailLog;
 
 const EmailAutomationManagement: React.FC = () => {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [automations, setAutomations] = useState<EmailAutomation[]>([]);
   const [emailLogs, setEmailLogs] = useState<EmailLog[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
-  const [selectedAutomation, setSelectedAutomation] = useState<EmailAutomation | null>(null);
-  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
-  const [showAutomationDialog, setShowAutomationDialog] = useState(false);
-  const [showPreviewDialog, setShowPreviewDialog] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<EmailTemplate | null>(null);
+  const [showEditor, setShowEditor] = useState(false);
+  const [showLibrary, setShowLibrary] = useState(false);
+
+  const [showAutomationDialog, setShowAutomationDialog] = useState(false);
   const [editingAutomation, setEditingAutomation] = useState<EmailAutomation | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('templates');
   const [resending, setResending] = useState<string | null>(null);
 
-  const [templateForm, setTemplateForm] = useState<{
-    name: string;
-    subject: string;
-    content: string;
-    type: 'booking_confirmation' | 'pre_arrival' | 'id_reminder' | 'post_stay' | 'custom';
-    is_active: boolean;
-  }>({
-    name: '',
-    subject: '',
-    content: '',
-    type: 'custom',
-    is_active: true
-  });
+
 
   const [automationForm, setAutomationForm] = useState<{
     name: string;
     template_id: string;
-    trigger_type: 'booking_created' | 'check_in_approaching' | 'id_missing' | 'check_out_completed';
-    trigger_delay: number;
+    trigger_type: 'booking_created' | 'check_in_approaching' | 'check_out_completed' | 'payment_reminder' | 'review_request';
+    trigger_delay_hours: number;
     is_active: boolean;
+    conditions?: {
+      booking_status?: string[];
+      property_ids?: string[];
+      guest_count_min?: number;
+      guest_count_max?: number;
+    };
   }>({
     name: '',
     template_id: '',
     trigger_type: 'booking_created',
-    trigger_delay: 0,
-    is_active: true
+    trigger_delay_hours: 0,
+    is_active: true,
+    conditions: {}
   });
 
-  const [testEmailForm, setTestEmailForm] = useState({
-    template_id: '',
-    recipient_email: '',
-    recipient_name: 'Test Guest'
-  });
+
 
   const templateTypes = [
     { value: 'booking_confirmation', label: 'Booking Confirmation' },
@@ -127,23 +99,12 @@ const EmailAutomationManagement: React.FC = () => {
   const triggerTypes = [
     { value: 'booking_created', label: 'Booking Created', delay: 0 },
     { value: 'check_in_approaching', label: 'Check-in Approaching', delay: 48 },
-    { value: 'id_missing', label: 'ID Verification Missing', delay: 24 },
-    { value: 'check_out_completed', label: 'Check-out Completed', delay: 24 }
+    { value: 'check_out_completed', label: 'Check-out Completed', delay: 24 },
+    { value: 'payment_reminder', label: 'Payment Reminder', delay: 24 },
+    { value: 'review_request', label: 'Review Request', delay: 24 }
   ];
 
-  const availableVariables = [
-    '{{guest_name}}',
-    '{{guest_email}}',
-    '{{property_name}}',
-    '{{check_in_date}}',
-    '{{check_out_date}}',
-    '{{booking_id}}',
-    '{{total_amount}}',
-    '{{guests_count}}',
-    '{{host_name}}',
-    '{{host_phone}}',
-    '{{property_address}}'
-  ];
+
 
   useEffect(() => {
     fetchData();
@@ -153,87 +114,23 @@ const EmailAutomationManagement: React.FC = () => {
     try {
       setLoading(true);
       
-      // Mock template data
-      const mockTemplates: EmailTemplate[] = [
-        {
-          id: '1',
-          name: 'Booking Confirmation',
-          subject: 'Your booking at {{property_name}} is confirmed!',
-          content: `Dear {{guest_name}},
-
-Thank you for booking with Habitat Lobby! Your reservation is confirmed.
-
-Booking Details:
-- Property: {{property_name}}
-- Check-in: {{check_in_date}}
-- Check-out: {{check_out_date}}
-- Guests: {{guests_count}}
-- Total: {{total_amount}}
-
-We'll send you pre-arrival instructions 48 hours before your check-in.
-
-Best regards,
-{{host_name}}`,
-          type: 'booking_confirmation',
-          is_active: true,
-          variables: ['guest_name', 'property_name', 'check_in_date', 'check_out_date', 'guests_count', 'total_amount', 'host_name'],
-          created_at: '2024-08-01T10:00:00Z',
-          last_modified: '2024-08-05T14:30:00Z'
-        },
-        {
-          id: '2',
-          name: 'Pre-Arrival Instructions',
-          subject: 'Your stay at {{property_name}} starts tomorrow!',
-          content: `Dear {{guest_name}},
-
-Your stay at {{property_name}} begins tomorrow! Here are your check-in instructions:
-
-Check-in Details:
-- Time: 3:00 PM onwards
-- Address: {{property_address}}
-- Contact: {{host_phone}}
-
-Important: Please upload your ID document if you haven't already.
-
-Looking forward to hosting you!
-
-{{host_name}}`,
-          type: 'pre_arrival',
-          is_active: true,
-          variables: ['guest_name', 'property_name', 'property_address', 'host_phone', 'host_name'],
-          created_at: '2024-08-01T10:00:00Z',
-          last_modified: '2024-08-03T16:45:00Z'
-        }
-      ];
 
 
 
 
 
-      // Fetch real data from EmailTemplateService
+
+      // Fetch real data from services
       const fetchedTemplates = await emailTemplateService.getAllTemplates();
       const fetchedLogs = await emailTemplateService.getEmailLogs(50, 0);
+      const fetchedAutomations = await emailAutomationService.getAllAutomations();
 
       console.log('📧 Fetched email templates:', fetchedTemplates);
+      console.log('🤖 Fetched automations:', fetchedAutomations);
+      
       setTemplates(fetchedTemplates);
-
       setEmailLogs(fetchedLogs || []);
-
-      // Generate automations based on real templates
-      const generatedAutomations: EmailAutomation[] = fetchedTemplates
-        .filter(t => t.is_active)
-        .slice(0, 4)
-        .map((template, index) => ({
-          id: `auto_${index + 1}`,
-          name: `Send ${template.name}`,
-          template_id: template.id,
-          trigger_type: (['booking_created', 'check_in_approaching', 'id_missing', 'check_out_completed'] as const)[index],
-          trigger_delay: [0, 48, 72, 24][index],
-          is_active: true,
-          created_at: template.created_at
-        }));
-
-      setAutomations(generatedAutomations);
+      setAutomations(fetchedAutomations);
     } catch (error) {
       console.error('Error fetching data:', error);
       // Fallback to empty arrays on error
@@ -287,39 +184,33 @@ Looking forward to hosting you!
     return triggerObj ? triggerObj.label : triggerType;
   };
 
-  const handleSaveTemplate = async () => {
-    try {
-      if (editingTemplate) {
-        // Update existing template
-        await emailTemplateService.updateTemplate({
-          id: editingTemplate.id,
-          name: templateForm.name,
-          subject: templateForm.subject,
-          content: templateForm.content,
-          type: templateForm.type as EmailTemplate['type'],
-          variables: emailTemplateService.extractVariables(templateForm.content)
-        });
-        console.log('✅ Template updated successfully');
-      } else {
-        // Create new template
-        await emailTemplateService.createTemplate({
-          name: templateForm.name,
-          subject: templateForm.subject,
-          content: templateForm.content,
-          type: templateForm.type as EmailTemplate['type'],
-          variables: emailTemplateService.extractVariables(templateForm.content)
-        });
-        console.log('✅ Template created successfully');
-      }
-
-      setShowTemplateDialog(false);
-      setEditingTemplate(null);
-      resetTemplateForm();
-      await fetchData();
-    } catch (error) {
-      console.error('❌ Error saving template:', error);
-    }
+  const handleCreateTemplate = () => {
+    setEditingTemplate(null);
+    setShowEditor(true);
   };
+
+  const handleEditTemplate = (template: EmailTemplate) => {
+    setEditingTemplate(template);
+    setShowEditor(true);
+  };
+
+  const handleSaveTemplateFromEditor = (template: EmailTemplate) => {
+    // Update the templates list
+    if (template.id) {
+      setTemplates(prev => prev.map(t => t.id === template.id ? template : t));
+    } else {
+      setTemplates(prev => [...prev, { ...template, id: Date.now().toString() }]);
+    }
+    setShowEditor(false);
+    setEditingTemplate(null);
+  };
+
+  const handleSelectFromLibrary = (template: EmailTemplate) => {
+    setEditingTemplate(template);
+    setShowEditor(true);
+  };
+
+
 
   const handleDeleteTemplate = async (templateId: string) => {
     try {
@@ -347,30 +238,24 @@ Looking forward to hosting you!
     try {
       if (editingAutomation) {
         console.log('Updating automation:', editingAutomation.id, automationForm);
+        await emailAutomationService.updateAutomation(editingAutomation.id, automationForm);
       } else {
         console.log('Creating automation:', automationForm);
+        await emailAutomationService.createAutomation(automationForm);
       }
       
       setShowAutomationDialog(false);
       setEditingAutomation(null);
       resetAutomationForm();
       await fetchData();
+      toast.success(editingAutomation ? 'Automation updated successfully!' : 'Automation created successfully!');
     } catch (error) {
       console.error('Error saving automation:', error);
+      toast.error('Failed to save automation');
     }
   };
 
-  const handleEditTemplate = (template: EmailTemplate) => {
-    setEditingTemplate(template);
-    setTemplateForm({
-      name: template.name,
-      subject: template.subject,
-      content: template.content,
-      type: template.type,
-      is_active: template.is_active
-    });
-    setShowTemplateDialog(true);
-  };
+
 
   const handleEditAutomation = (automation: EmailAutomation) => {
     setEditingAutomation(automation);
@@ -378,54 +263,16 @@ Looking forward to hosting you!
       name: automation.name,
       template_id: automation.template_id,
       trigger_type: automation.trigger_type,
-      trigger_delay: automation.trigger_delay,
-      is_active: automation.is_active
+      trigger_delay_hours: automation.trigger_delay_hours,
+      is_active: automation.is_active,
+      conditions: automation.conditions || {}
     });
     setShowAutomationDialog(true);
   };
 
-  const handlePreviewTemplate = (template: EmailTemplate) => {
-    setSelectedTemplate(template);
-    setShowPreviewDialog(true);
-  };
 
-  const handleSendTestEmail = async () => {
-    if (!selectedTemplate || !testEmailForm.recipient_email) return;
 
-    try {
-      console.log('Sending test email:', testEmailForm);
 
-      // Send test email using the email service
-      const result = await emailService.sendEmail({
-        to: testEmailForm.recipient_email,
-        toName: 'Test Recipient',
-        subject: `[TEST] ${selectedTemplate.subject}`,
-        htmlBody: selectedTemplate.content,
-        templateId: selectedTemplate.id,
-        metadata: {
-          test_email: true,
-          sent_by: 'admin',
-          template_name: selectedTemplate.name
-        }
-      });
-
-      if (result.success) {
-        console.log('Test email sent successfully:', result.messageId);
-        // In a real app, you'd show a success message
-        alert('Test email sent successfully!');
-      } else {
-        console.error('Test email failed:', result.error);
-        alert(`Test email failed: ${result.error}`);
-      }
-
-      // Reset form
-      setTestEmailForm({ template_id: '', recipient_email: '', recipient_name: '' });
-
-    } catch (error) {
-      console.error('Error sending test email:', error);
-      alert('An error occurred while sending the test email');
-    }
-  };
 
   const toggleAutomation = async (automationId: string, isActive: boolean) => {
     try {
@@ -437,31 +284,15 @@ Looking forward to hosting you!
     }
   };
 
-  const resetTemplateForm = () => {
-    setTemplateForm({
-      name: '',
-      subject: '',
-      content: '',
-      type: 'custom',
-      is_active: true
-    });
-  };
-
   const resetAutomationForm = () => {
     setAutomationForm({
       name: '',
       template_id: '',
       trigger_type: 'booking_created',
-      trigger_delay: 0,
-      is_active: true
+      trigger_delay_hours: 0,
+      is_active: true,
+      conditions: {}
     });
-  };
-
-  const insertVariable = (variable: string) => {
-    setTemplateForm(prev => ({
-      ...prev,
-      content: prev.content + variable
-    }));
   };
 
   return (
@@ -499,11 +330,20 @@ Looking forward to hosting you!
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>Email Templates</CardTitle>
-                <Button onClick={() => setShowTemplateDialog(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Template
-                </Button>
+                <CardTitle className="flex items-center gap-2">
+                  <Mail className="h-5 w-5" />
+                  Email Templates
+                </CardTitle>
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" onClick={() => setShowLibrary(true)}>
+                    <Palette className="h-4 w-4 mr-2" />
+                    Template Library
+                  </Button>
+                  <Button onClick={handleCreateTemplate}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Template
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -524,7 +364,7 @@ Looking forward to hosting you!
                         </div>
                         
                         <div>
-                          <Badge variant="outline">{getTypeLabel(template.type)}</Badge>
+                          <Badge variant="outline">{getTypeLabel(template.template_type)}</Badge>
                         </div>
                         
                         <div>
@@ -532,30 +372,16 @@ Looking forward to hosting you!
                           <p className="text-sm text-gray-600 truncate">{template.subject}</p>
                         </div>
                         
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handlePreviewTemplate(template)}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
+                        <div className="flex items-center gap-1">
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleEditTemplate(template)}
+                            title="Edit Template"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setTestEmailForm(prev => ({ ...prev, template_id: template.id }));
-                            }}
-                          >
-                            <Send className="h-4 w-4" />
-                          </Button>
+
                           <Button
                             variant="ghost"
                             size="sm"
@@ -621,7 +447,7 @@ Looking forward to hosting you!
                             <p>{getTriggerLabel(automation.trigger_type)}</p>
                           </TableCell>
                           <TableCell>
-                            <p>{automation.trigger_delay}h</p>
+                            <p>{automation.trigger_delay_hours}h</p>
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -684,7 +510,7 @@ Looking forward to hosting you!
                     {emailLogs.map((log) => (
                       <TableRow key={log.id}>
                         <TableCell>
-                          <p className="font-medium">{log.template_name}</p>
+                          <p className="font-medium">{log.template_id || 'Unknown Template'}</p>
                         </TableCell>
                         <TableCell>
                           <div>
@@ -705,9 +531,7 @@ Looking forward to hosting you!
                         </TableCell>
                         <TableCell>
                           <p className="text-sm">
-                            {log.sent_at ? new Date(log.sent_at).toLocaleString() :
-                             log.scheduled_for ? `Scheduled: ${new Date(log.scheduled_for).toLocaleString()}` :
-                             'Not sent'}
+                            {log.sent_at ? new Date(log.sent_at).toLocaleString() : 'Not sent'}
                           </p>
                         </TableCell>
                         <TableCell>
@@ -745,126 +569,8 @@ Looking forward to hosting you!
         </TabsContent>
       </Tabs>
 
-      {/* Template Dialog */}
-      <Dialog open={showTemplateDialog} onOpenChange={setShowTemplateDialog}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingTemplate ? 'Edit Template' : 'Create Email Template'}
-            </DialogTitle>
-          </DialogHeader>
-          <div className="grid grid-cols-3 gap-6">
-            <div className="col-span-2 space-y-4">
-              <div>
-                <Label>Template Name</Label>
-                <Input
-                  value={templateForm.name}
-                  onChange={(e) => setTemplateForm(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Booking Confirmation"
-                />
-              </div>
 
-              <div>
-                <Label>Template Type</Label>
-                <Select value={templateForm.type} onValueChange={(value: 'booking_confirmation' | 'pre_arrival' | 'id_reminder' | 'post_stay' | 'custom') => setTemplateForm(prev => ({ ...prev, type: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {templateTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        {type.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
-              <div>
-                <Label>Subject Line</Label>
-                <Input
-                  value={templateForm.subject}
-                  onChange={(e) => setTemplateForm(prev => ({ ...prev, subject: e.target.value }))}
-                  placeholder="Your booking at {{property_name}} is confirmed!"
-                />
-              </div>
-
-              <div>
-                <Label>Email Content</Label>
-                <Textarea
-                  value={templateForm.content}
-                  onChange={(e) => setTemplateForm(prev => ({ ...prev, content: e.target.value }))}
-                  placeholder="Dear {{guest_name}},..."
-                  rows={15}
-                  className="font-mono text-sm"
-                />
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Switch
-                  checked={templateForm.is_active}
-                  onCheckedChange={(checked) => setTemplateForm(prev => ({ ...prev, is_active: checked }))}
-                />
-                <Label>Template is active</Label>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold mb-3">Available Variables</h3>
-                <div className="space-y-2">
-                  {availableVariables.map((variable) => (
-                    <Button
-                      key={variable}
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-start text-xs font-mono"
-                      onClick={() => insertVariable(variable)}
-                    >
-                      <Copy className="h-3 w-3 mr-2" />
-                      {variable}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-semibold mb-3">Test Email</h3>
-                <div className="space-y-2">
-                  <Input
-                    placeholder="test@email.com"
-                    value={testEmailForm.recipient_email}
-                    onChange={(e) => setTestEmailForm(prev => ({ ...prev, recipient_email: e.target.value }))}
-                  />
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full"
-                    onClick={handleSendTestEmail}
-                    disabled={!testEmailForm.recipient_email}
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    Send Test
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-4 border-t">
-            <Button variant="outline" onClick={() => {
-              setShowTemplateDialog(false);
-              setEditingTemplate(null);
-              resetTemplateForm();
-            }}>
-              Cancel
-            </Button>
-            <Button onClick={handleSaveTemplate}>
-              {editingTemplate ? 'Update Template' : 'Create Template'}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Automation Dialog */}
       <Dialog open={showAutomationDialog} onOpenChange={setShowAutomationDialog}>
@@ -902,12 +608,12 @@ Looking forward to hosting you!
 
             <div>
               <Label>Trigger Event</Label>
-              <Select value={automationForm.trigger_type} onValueChange={(value: 'booking_created' | 'check_in_approaching' | 'id_missing' | 'check_out_completed') => {
+              <Select value={automationForm.trigger_type} onValueChange={(value: 'booking_created' | 'check_in_approaching' | 'check_out_completed' | 'payment_reminder' | 'review_request') => {
                 const trigger = triggerTypes.find(t => t.value === value);
                 setAutomationForm(prev => ({
                   ...prev,
                   trigger_type: value,
-                  trigger_delay: trigger?.delay || 0
+                  trigger_delay_hours: trigger?.delay || 0
                 }));
               }}>
                 <SelectTrigger>
@@ -927,8 +633,8 @@ Looking forward to hosting you!
               <Label>Delay (hours)</Label>
               <Input
                 type="number"
-                value={automationForm.trigger_delay}
-                onChange={(e) => setAutomationForm(prev => ({ ...prev, trigger_delay: parseInt(e.target.value) || 0 }))}
+                value={automationForm.trigger_delay_hours}
+                onChange={(e) => setAutomationForm(prev => ({ ...prev, trigger_delay_hours: parseInt(e.target.value) || 0 }))}
                 min="0"
               />
             </div>
@@ -956,6 +662,24 @@ Looking forward to hosting you!
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Visual Email Template Editor */}
+      <EmailTemplateEditor
+        template={editingTemplate}
+        isOpen={showEditor}
+        onClose={() => {
+          setShowEditor(false);
+          setEditingTemplate(null);
+        }}
+        onSave={handleSaveTemplateFromEditor}
+      />
+
+      {/* Email Template Library */}
+      <EmailTemplateLibrary
+        isOpen={showLibrary}
+        onClose={() => setShowLibrary(false)}
+        onSelectTemplate={handleSelectFromLibrary}
+      />
     </div>
   );
 };

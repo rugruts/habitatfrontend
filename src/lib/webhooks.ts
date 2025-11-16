@@ -1,9 +1,8 @@
 import { supabaseHelpers } from './supabase';
-import Stripe from 'stripe';
 
-const stripe = new Stripe(import.meta.env.STRIPE_SECRET_KEY || 'your_stripe_secret_key_here', {
-  apiVersion: '2025-07-30.basil',
-});
+// NOTE: Stripe webhook handling should be done on the backend
+// This file is kept for reference but webhooks should be processed server-side
+// where the Stripe secret key can be safely used
 
 // Webhook handler for Stripe events
 export const handleStripeWebhook = async (event: Stripe.Event) => {

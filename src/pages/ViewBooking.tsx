@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import SEO from '@/components/SEO';
-import { trackPageView } from '@/components/GoogleAnalytics';
+import { trackPageView } from '@/utils/analytics';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -29,10 +29,13 @@ import {
   Camera,
   Wifi,
   Car,
-  Coffee
+  Coffee,
+  MessageSquare,
+  PenTool,
+  ThumbsUp,
+  Eye
 } from 'lucide-react';
 import { supabaseHelpers } from '@/lib/supabase';
-import Footer from '@/components/Footer';
 
 interface BookingDetails {
   id: string;
@@ -57,6 +60,9 @@ interface BookingDetails {
   id_passport_number?: string;
   issuing_country?: string;
   issuing_authority?: string;
+  // Review related
+  has_review?: boolean;
+  review_invitation_sent?: boolean;
 }
 
 const ViewBooking: React.FC = () => {
@@ -508,6 +514,52 @@ const ViewBooking: React.FC = () => {
                       Print Booking Details
                     </Button>
 
+                    {/* Review Section - Show after checkout */}
+                    {(booking.status === 'checked_out' || booking.status === 'completed') && (
+                      <div className="space-y-3">
+                        {!booking.has_review ? (
+                          <div className="p-4 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+                            <div className="text-center">
+                              <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
+                              <h4 className="font-medium text-gray-900 mb-1">
+                                Share Your Experience
+                              </h4>
+                              <p className="text-sm text-gray-600 mb-3">
+                                Help future guests by writing a review
+                              </p>
+                              <Button
+                                className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                                onClick={() => navigate(`/review/${booking.id}`)}
+                              >
+                                <PenTool className="h-4 w-4 mr-2" />
+                                Write Review
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                            <div className="text-center">
+                              <ThumbsUp className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                              <h4 className="font-medium text-green-900 mb-1">
+                                Thank You!
+                              </h4>
+                              <p className="text-sm text-green-700 mb-3">
+                                Your review has been submitted
+                              </p>
+                              <Button
+                                variant="outline"
+                                className="w-full border-green-300 text-green-700 hover:bg-green-100"
+                                onClick={() => navigate(`/review/${booking.id}`)}
+                              >
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Review
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     {booking.status === 'confirmed' && (
                       <Button
                         variant="outline"
@@ -542,7 +594,6 @@ const ViewBooking: React.FC = () => {
         </div>
       </section>
 
-      <Footer />
     </main>
   );
 };

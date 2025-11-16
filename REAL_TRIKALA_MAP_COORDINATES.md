@@ -17,13 +17,13 @@ Updated the Interactive Cultural Map with **exact real GPS coordinates** for all
    - **Access:** Daily 8:00-20:00 (Summer), 8:00-17:00 (Winter)
 
 2. **Ancient Asclepieion Site**
-   - **GPS:** 39.558523674512893, 21.767534891056742
+   - **GPS:** 39.55658207750388, 21.764800738897296
    - **Real Location:** Near the castle hill
    - **Description:** Archaeological site of the ancient healing sanctuary
    - **Access:** Daily 8:00-15:00, Entry €2
 
 3. **Ottoman Clock Tower (Roloi)**
-   - **GPS:** 39.555089472789845, 21.766902208328247
+   - **GPS:** 39.55824947509666, 21.76297011307814
    - **Real Location:** City center landmark
    - **Description:** 1936 clock tower on former minaret site
    - **Access:** External viewing only
@@ -37,13 +37,13 @@ Updated the Interactive Cultural Map with **exact real GPS coordinates** for all
    - **Access:** Tue-Sun 9:00-15:00, Entry €3
 
 5. **Vassilis Tsitsanis Museum**
-   - **GPS:** 39.554789123456789, 21.766312847291056
+   - **GPS:** 39.55099735843994, 21.770118543820864
    - **Real Location:** Downtown Trikala
    - **Description:** Rebetiko composer's life and musical legacy
    - **Access:** Tue-Sun 10:00-14:00, 18:00-21:00, Entry €3
 
 6. **Municipal Theater of Trikala**
-   - **GPS:** 39.555634891205673, 21.767456892341567
+   - **GPS:** 39.546270169344986, 21.758822730744264
    - **Real Location:** Near central square
    - **Description:** Historic theater for cultural performances
    - **Access:** Performance schedule varies
@@ -51,13 +51,13 @@ Updated the Interactive Cultural Map with **exact real GPS coordinates** for all
 ### **🏘️ Historic Districts**
 
 7. **Varousi Old Town**
-   - **GPS:** 39.557456892341567, 21.766534891205673
+   - **GPS:** 39.55919412926667, 21.76505951937856
    - **Real Location:** Traditional Ottoman neighborhood
    - **Description:** Cobblestone streets and preserved architecture
    - **Access:** Always accessible
 
 8. **Central Square (Plateia Riga Fereou)**
-   - **GPS:** 39.555312847291056, 21.767089472789845
+   - **GPS:** 39.55500912069906, 21.7678820839955
    - **Real Location:** Main town square
    - **Description:** Heart of Trikala's social life with cafés and shops
    - **Access:** Always accessible
@@ -65,13 +65,13 @@ Updated the Interactive Cultural Map with **exact real GPS coordinates** for all
 ### **🌉 Natural & Recreational**
 
 9. **Lithaios River Bridge**
-   - **GPS:** 39.553478912456789, 21.769523847291034
+   - **GPS:** 39.55543617935153, 21.767761570925458
    - **Real Location:** Historic stone bridge
    - **Description:** Part of scenic riverside walking path
    - **Access:** Always accessible
 
 10. **Mill of Elves Park**
-    - **GPS:** 39.552478912456789, 21.770523847291034
+    - **GPS:** 39.546254698476204, 21.758652864742487
     - **Real Location:** Riverside park area
     - **Description:** Famous Christmas park location, beautiful year-round
     - **Access:** Always accessible (Christmas park Dec-Jan)

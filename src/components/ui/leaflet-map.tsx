@@ -1,6 +1,7 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { Attraction } from '@/data/apartments';
+import { CustomMapPinsService, CustomMapPin } from '@/services/CustomMapPinsService';
 
 // Fix for default markers in Leaflet with Webpack/Vite
 const DefaultIcon = L.icon({
@@ -20,7 +21,26 @@ interface LeafletMapProps {
   attractions?: Attraction[];
   showAttractions?: boolean;
   height?: string;
+  showCustomPins?: boolean; // Option to show/hide custom pins
+  context?: 'guide' | 'overview' | 'property'; // Context for custom pins
 }
+
+// Helper function to get SVG path for custom pin icons
+const getIconSvgPath = (iconName: string) => {
+  const iconPaths: Record<string, string> = {
+    'Utensils': '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
+    'Landmark': '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12h12"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+    'ShoppingBag': '<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/>',
+    'Bus': '<path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/>',
+    'Building': '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12h12"/>',
+    'Music': '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+    'Trees': '<path d="M10 10v.2A3 3 0 0 1 8.9 16c0 .74-.4 1.38-1 1.72V22h8v-4.28c-.6-.35-1-.98-1-1.72a3 3 0 0 1-1.1-5.8V10a3 3 0 0 0-3-3H13a3 3 0 0 0-3 3Z"/>',
+    'Home': '<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/>',
+    'Castle': '<path d="M2 3h20v18H2z"/><path d="M6 3v18"/><path d="M10 3v18"/>',
+    'MapPin': '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>'
+  };
+  return iconPaths[iconName] || iconPaths['MapPin'];
+};
 
 // Property coordinates (Αλεξάνδρας 59, Τρίκαλα, Greece)
 const PROPERTY_COORDS = { lat: 39.5551, lng: 21.7674 };
@@ -29,10 +49,46 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
   address,
   attractions = [],
   showAttractions = false,
-  height = '400px'
+  height = '400px',
+  showCustomPins = true,
+  context = 'property'
 }) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const [customPins, setCustomPins] = useState<CustomMapPin[]>([]);
+
+  // Load custom pins based on context
+  useEffect(() => {
+    if (!showCustomPins) return;
+    
+    const loadCustomPins = async () => {
+      try {
+        let pins: CustomMapPin[] = [];
+        
+        switch (context) {
+          case 'guide':
+            pins = await CustomMapPinsService.getMapPinsByContext('guide');
+            break;
+          case 'overview':
+            pins = await CustomMapPinsService.getMapPinsByContext('overview');
+            break;
+          case 'property':
+            pins = await CustomMapPinsService.getMapPinsByContext('property');
+            break;
+          default:
+            pins = await CustomMapPinsService.getAllMapPins();
+        }
+        
+        // Filter only active pins
+        setCustomPins(pins.filter(pin => pin.is_active));
+      } catch (error) {
+        console.error('Error loading custom pins:', error);
+        setCustomPins([]);
+      }
+    };
+
+    loadCustomPins();
+  }, [context, showCustomPins]);
 
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
@@ -127,6 +183,80 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
         }
       }
 
+      // Add custom pins if enabled
+      if (showCustomPins && customPins.length > 0) {
+        customPins.forEach((pin) => {
+          // Create custom pin icon with SVG
+          const customPinIcon = L.divIcon({
+            className: 'custom-map-pin',
+            html: `
+              <div style="
+                width: 26px;
+                height: 26px;
+                background: ${pin.color};
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+                border: 2px solid white;
+                position: relative;
+                transform: ${pin.is_featured ? 'scale(1.1)' : 'scale(1)'};
+              ">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  ${getIconSvgPath(pin.icon_name)}
+                </svg>
+                ${pin.is_featured ? `
+                  <div style="
+                    position: absolute;
+                    top: -2px;
+                    right: -2px;
+                    width: 8px;
+                    height: 8px;
+                    background: #fbbf24;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    border: 1px solid white;
+                  ">
+                    <svg width="4" height="4" viewBox="0 0 24 24" fill="white">
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                  </div>
+                ` : ''}
+              </div>
+            `,
+            iconSize: [26, 26],
+            iconAnchor: [13, 13],
+            popupAnchor: [0, -13]
+          });
+
+          const marker = L.marker([pin.latitude, pin.longitude], { icon: customPinIcon }).addTo(map);
+          
+          // Create popup content for custom pin
+          const popupContent = `
+            <div style="font-family: system-ui; padding: 8px; min-width: 160px;">
+              <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                <strong style="flex: 1; font-size: 14px; color: #1f2937;">${pin.name}</strong>
+                ${pin.is_featured ? '<span style="color: #fbbf24; font-size: 12px;">⭐</span>' : ''}
+              </div>
+              ${pin.description ? `<p style="margin: 4px 0; color: #6b7280; font-size: 12px;">${pin.description}</p>` : ''}
+              <div style="margin: 6px 0;">
+                <span style="background: ${pin.color}; color: white; padding: 2px 6px; border-radius: 6px; font-size: 10px; text-transform: capitalize;">
+                  ${pin.category}
+                </span>
+              </div>
+              ${pin.address ? `<p style="margin: 4px 0; color: #9ca3af; font-size: 10px;">📍 ${pin.address}</p>` : ''}
+              ${pin.website_url ? `<p style="margin: 4px 0;"><a href="${pin.website_url}" target="_blank" style="color: #3b82f6; font-size: 10px; text-decoration: none;">🌐 Website</a></p>` : ''}
+              ${pin.phone_number ? `<p style="margin: 4px 0; color: #9ca3af; font-size: 10px;">📞 ${pin.phone_number}</p>` : ''}
+            </div>
+          `;
+
+          marker.bindPopup(popupContent);
+        });
+      }
+
       mapInstanceRef.current = map;
 
         // Force a resize after a short delay to ensure proper rendering
@@ -165,11 +295,11 @@ const LeafletMap: React.FC<LeafletMapProps> = ({
         mapInstanceRef.current = null;
       }
     };
-  }, [attractions, showAttractions]);
+  }, [attractions, showAttractions, customPins, showCustomPins]);
 
   return (
-    <div 
-      ref={mapRef} 
+    <div
+      ref={mapRef}
       style={{ height, width: '100%' }}
       className="rounded-lg overflow-hidden border border-accent/20"
     />

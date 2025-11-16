@@ -11,30 +11,10 @@ interface AdminAuthContextType {
   resetPassword: (email: string) => Promise<{ error?: string }>;
 }
 
-const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
+export const AdminAuthContext = createContext<AdminAuthContextType | undefined>(undefined);
 
 // Add a display name for better debugging
 AdminAuthContext.displayName = 'AdminAuthContext';
-
-export const useAdminAuth = () => {
-  const context = useContext(AdminAuthContext);
-  if (context === undefined) {
-    // During development, provide a fallback to prevent crashes during hot reloading
-    if (process.env.NODE_ENV === 'development') {
-      console.warn('⚠️ useAdminAuth called outside of AdminAuthProvider - providing fallback');
-      return {
-        user: null,
-        loading: false,
-        isAdmin: false,
-        signIn: async () => ({ error: 'Context not available' }),
-        signOut: async () => {},
-        resetPassword: async () => ({ error: 'Context not available' })
-      };
-    }
-    throw new Error('useAdminAuth must be used within an AdminAuthProvider');
-  }
-  return context;
-};
 
 interface AdminAuthProviderProps {
   children: React.ReactNode;

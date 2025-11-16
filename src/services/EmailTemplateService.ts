@@ -5,12 +5,12 @@ export interface EmailTemplate {
   name: string;
   subject: string;
   content: string;
-  type: 'booking_confirmation' | 'pre_arrival' | 'post_stay' | 'payment_confirmation' | 'cancellation' | 'custom';
+  template_type: 'booking_confirmation' | 'pre_arrival' | 'post_stay' | 'payment_confirmation' | 'cancellation' | 'custom';
   is_active: boolean;
   variables: string[];
   created_at: string;
   updated_at: string;
-  last_modified: string;
+  last_modified?: string;
 }
 
 export interface EmailLog {
@@ -25,7 +25,7 @@ export interface EmailLog {
   guest_id?: string;
   sent_at: string;
   error_message?: string;
-  metadata: Record<string, any>;
+  metadata: Record<string, string | number | boolean | null>;
   created_at: string;
 }
 
@@ -33,7 +33,7 @@ export interface CreateEmailTemplateData {
   name: string;
   subject: string;
   content: string;
-  type: EmailTemplate['type'];
+  template_type: EmailTemplate['template_type'];
   is_active?: boolean;
   variables?: string[];
 }
@@ -94,11 +94,11 @@ export class EmailTemplateService {
   }
 
   // Get template by type
-  async getTemplateByType(type: EmailTemplate['type']): Promise<EmailTemplate | null> {
+  async getTemplateByType(template_type: EmailTemplate['template_type']): Promise<EmailTemplate | null> {
     const { data, error } = await supabase
       .from('email_templates')
       .select('*')
-      .eq('type', type)
+      .eq('template_type', template_type)
       .eq('is_active', true)
       .single();
 
@@ -329,7 +329,7 @@ export class EmailTemplateService {
   }
 
   // Process template variables
-  processTemplate(template: string, variables: Record<string, any>): string {
+  processTemplate(template: string, variables: Record<string, string | number | boolean | null>): string {
     let processedTemplate = template;
     
     // Replace all {{variable}} placeholders with actual values
